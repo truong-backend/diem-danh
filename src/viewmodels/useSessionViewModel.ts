@@ -36,7 +36,19 @@ export function useSessionViewModel(classId: string) {
     }
   }
 
-  return { sessions, loading, createSession, reload: load }
+  const updateSession = async (sessionId: string, data: CreateSessionPayload) => {
+    try {
+      await sessionService.update(sessionId, data)
+      toast.success('Cập nhật buổi học thành công')
+      await load()
+      return true
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Cập nhật buổi học thất bại')
+      return false
+    }
+  }
+
+  return { sessions, loading, createSession, updateSession, reload: load }
 }
 
 export function useQrViewModel(sessionId: string) {
