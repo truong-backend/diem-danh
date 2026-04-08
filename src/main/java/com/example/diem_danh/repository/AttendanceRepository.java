@@ -17,14 +17,16 @@ public interface AttendanceRepository extends Neo4jRepository<AttendanceNode, Lo
     @Query("""
         MATCH (a:Attendance)-[:FOR_SESSION]->(s:Session {sessionId: $sessionId})
         MATCH (a)-[:ATTENDED_BY]->(u:User)
-        RETURN a, collect(s), collect(u)
+        RETURN a, s, u
+        ORDER BY u.fullName ASC
         """)
     List<AttendanceNode> findBySessionId(String sessionId);
 
     @Query("""
         MATCH (a:Attendance)-[:ATTENDED_BY]->(u:User {userId: $studentId})
         MATCH (a)-[:FOR_SESSION]->(s:Session)
-        RETURN a, collect(u), collect(s)
+        OPTIONAL MATCH (s)-[:BELONGS_TO_CLASS]->(cr:ClassRoom)
+        RETURN a, u, s, cr
         ORDER BY s.startTime DESC
         """)
     List<AttendanceNode> findByStudentId(String studentId);
@@ -32,20 +34,10 @@ public interface AttendanceRepository extends Neo4jRepository<AttendanceNode, Lo
     @Query("""
         MATCH (a:Attendance)-[:FOR_SESSION]->(s:Session {sessionId: $sessionId})
         MATCH (a)-[:ATTENDED_BY]->(u:User {userId: $studentId})
-        RETURN a LIMIT 1
+        RETURN a, s, u
+        LIMIT 1
         """)
     Optional<AttendanceNode> findBySessionAndStudent(String sessionId, String studentId);
-
-    @Query("""
-        MATCH (a:Attendance)-[:FOR_SESSION]->(s:Session)-[:BELONGS_TO_CLASS]->(cr:ClassRoom {classId: $classId})
-        MATCH (a)-[:ATTENDED_BY]->(u:User)
-        WHERE a.status = 'PRESENT' OR a.status = 'LATE'
-        RETURN count(a) * 1.0 / (
-            (MATCH (s2:Session)-[:BELONGS_TO_CLASS]->(cr2:ClassRoom {classId: $classId}) RETURN count(s2)) *
-            (MATCH (u2:User)-[:ENROLLED_IN]->(cr3:ClassRoom {classId: $classId}) RETURN count(u2))
-        ) AS rate
-        """)
-    Double getAttendanceRateByClass(String classId);
 
     @Query("""
         MATCH (s:Session)-[:BELONGS_TO_CLASS]->(cr:ClassRoom {classId: $classId})

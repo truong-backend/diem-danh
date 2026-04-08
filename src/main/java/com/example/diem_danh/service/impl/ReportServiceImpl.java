@@ -33,26 +33,38 @@ public class ReportServiceImpl implements ReportService {
 
         List<DashboardResponse.ClassAttendanceStat> classStats = classRoomRepository
                 .findAllWithDetails().stream().map(cr -> {
-                    Long sessionCount = sessionRepository.countByClassId(cr.getClassId());
-                    Long studentCount = classRoomRepository.countStudentsInClass(cr.getClassId());
-                    List<Map<String, Object>> summary = attendanceRepository
-                            .getSessionAttendanceSummary(cr.getClassId());
+                    try {
+                        Long sessionCount = sessionRepository.countByClassId(cr.getClassId());
+                        Long studentCount = classRoomRepository.countStudentsInClass(cr.getClassId());
+                        List<Map<String, Object>> summary = attendanceRepository
+                                .getSessionAttendanceSummary(cr.getClassId());
 
-                    double rate = 0.0;
-                    if (sessionCount > 0 && studentCount > 0 && !summary.isEmpty()) {
-                        long totalPresent = summary.stream()
-                                .mapToLong(m -> ((Number) m.getOrDefault("presentCount", 0)).longValue())
-                                .sum();
-                        rate = (double) totalPresent / (sessionCount * studentCount) * 100;
+                        double rate = 0.0;
+                        if (sessionCount != null && sessionCount > 0
+                                && studentCount != null && studentCount > 0
+                                && !summary.isEmpty()) {
+                            long totalPresent = summary.stream()
+                                    .mapToLong(m -> ((Number) m.getOrDefault("presentCount", 0)).longValue())
+                                    .sum();
+                            rate = (double) totalPresent / (sessionCount * studentCount) * 100;
+                        }
+
+                        return DashboardResponse.ClassAttendanceStat.builder()
+                                .classId(cr.getClassId())
+                                .className(cr.getName())
+                                .attendanceRate(Math.round(rate * 10.0) / 10.0)
+                                .totalSessions(sessionCount != null ? sessionCount.intValue() : 0)
+                                .totalStudents(studentCount != null ? studentCount.intValue() : 0)
+                                .build();
+                    } catch (Exception e) {
+                        return DashboardResponse.ClassAttendanceStat.builder()
+                                .classId(cr.getClassId())
+                                .className(cr.getName())
+                                .attendanceRate(0.0)
+                                .totalSessions(0)
+                                .totalStudents(0)
+                                .build();
                     }
-
-                    return DashboardResponse.ClassAttendanceStat.builder()
-                            .classId(cr.getClassId())
-                            .className(cr.getName())
-                            .attendanceRate(Math.round(rate * 10.0) / 10.0)
-                            .totalSessions(sessionCount.intValue())
-                            .totalStudents(studentCount.intValue())
-                            .build();
                 }).collect(Collectors.toList());
 
         double overallRate = classStats.isEmpty() ? 0.0 :

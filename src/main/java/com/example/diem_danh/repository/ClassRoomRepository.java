@@ -1,6 +1,7 @@
 package com.example.diem_danh.repository;
 
 import com.example.diem_danh.model.node.ClassRoomNode;
+import com.example.diem_danh.model.node.UserNode;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
@@ -16,20 +17,24 @@ public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long
     @Query("""
         MATCH (cr:ClassRoom)-[:BELONGS_TO]->(c:Course)
         MATCH (t:User)-[:TEACHES]->(cr)
-        RETURN cr, collect(c), collect(t)
+        RETURN cr, c, t
+        ORDER BY cr.academicYear DESC, cr.semester DESC
         """)
     List<ClassRoomNode> findAllWithDetails();
 
     @Query("""
         MATCH (t:User {userId: $teacherId})-[:TEACHES]->(cr:ClassRoom)
-        RETURN cr
+        MATCH (cr)-[:BELONGS_TO]->(c:Course)
+        RETURN cr, c, t
         ORDER BY cr.academicYear DESC, cr.semester DESC
         """)
     List<ClassRoomNode> findByTeacherId(String teacherId);
 
     @Query("""
         MATCH (s:User {userId: $studentId})-[:ENROLLED_IN]->(cr:ClassRoom)
-        RETURN cr
+        MATCH (cr)-[:BELONGS_TO]->(c:Course)
+        OPTIONAL MATCH (t:User)-[:TEACHES]->(cr)
+        RETURN cr, c, t
         """)
     List<ClassRoomNode> findByStudentId(String studentId);
 
@@ -42,17 +47,11 @@ public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long
         """)
     Long countStudentsInClass(String classId);
 
-    @Query("""
-        MATCH (cr:ClassRoom {classId: $classId})<-[:ENROLLED_IN]-(s:User)
-        RETURN s
-        ORDER BY s.fullName
-        """)
-    List<com.example.diem_danh.model.node.UserNode> findStudentsByClassId(String classId);
 
     @Query("""
         MATCH (cr:ClassRoom {classId: $classId})
         MATCH (s:User {userId: $studentId})
-        CREATE (s)-[:ENROLLED_IN]->(cr)
+        MERGE (s)-[:ENROLLED_IN]->(cr)
         """)
     void enrollStudent(String classId, String studentId);
 

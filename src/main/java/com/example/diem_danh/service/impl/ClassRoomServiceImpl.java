@@ -82,11 +82,10 @@ public class ClassRoomServiceImpl implements ClassRoomService {
 
     @Override
     public List<UserResponse> getStudents(String classId) {
-        findClass(classId);
-        return classRoomRepository.findStudentsByClassId(classId)
+        ClassRoomNode cr = findClass(classId);
+        return cr.getStudents()
                 .stream().map(userService::toResponse).collect(Collectors.toList());
     }
-
     private ClassRoomNode findClass(String classId) {
         return classRoomRepository.findByClassId(classId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));

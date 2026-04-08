@@ -67,8 +67,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUser(String userId) {
         UserNode user = findUser(userId);
-        user.setActive(false);
-        userRepository.save(user);
+        userRepository.delete(user);
     }
 
     @Override
@@ -114,4 +113,16 @@ public class UserServiceImpl implements UserService {
                 .createdAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null)
                 .build();
     }
+
+    public void activateUser(String userId) {
+        UserNode user = findUser(userId);
+        user.setActive(true);
+        userRepository.save(user);
+    }
+    public void deactivateUser(String userId) {
+        UserNode user = findUser(userId);
+        user.setActive(false);
+        userRepository.save(user);
+    }
+
 }

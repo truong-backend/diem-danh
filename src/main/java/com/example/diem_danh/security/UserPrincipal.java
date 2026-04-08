@@ -30,6 +30,8 @@ public class UserPrincipal implements UserDetails {
     @Override public boolean isCredentialsNonExpired() { return true; }
     @Override public boolean isEnabled() { return user.isActive(); }
 
+
+
     public String getUserId() { return user.getUserId(); }
     public String getRole() { return user.getRole(); }
 }

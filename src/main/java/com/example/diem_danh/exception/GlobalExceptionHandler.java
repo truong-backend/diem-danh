@@ -1,6 +1,8 @@
 package com.example.diem_danh.exception;
 
 import com.example.diem_danh.dto.response.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
@@ -13,10 +15,19 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(AttendanceException.class)
     public ResponseEntity<ApiResponse<Void>> handleAttendanceException(AttendanceException ex) {
+        log.warn("AttendanceException: {}", ex.getMessage());
         return ResponseEntity.status(ex.getStatus())
                 .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(QrExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleQrExpired(QrExpiredException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error("QR code đã hết hạn"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -39,6 +50,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
+        log.error("Unhandled exception", ex);
         return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("Lỗi server: " + ex.getMessage()));
     }

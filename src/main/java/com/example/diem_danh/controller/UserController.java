@@ -19,7 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> list(
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String search,
@@ -60,5 +60,19 @@ public class UserController {
                                                         @RequestBody Map<String, String> body) {
         userService.changeRole(id, body.get("role"));
         return ResponseEntity.ok(ApiResponse.success("Cập nhật role thành công", null));
+    }
+
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> activate(@PathVariable String id) {
+        userService.activateUser(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã kích hoạt lại tài khoản", null));
+    }
+
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deactivate(@PathVariable String id) {
+        userService.deactivateUser(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã vô hiệu hóa tài khoản", null));
     }
 }

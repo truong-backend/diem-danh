@@ -17,7 +17,8 @@ public interface SessionRepository extends Neo4jRepository<SessionNode, Long> {
 
     @Query("""
         MATCH (s:Session)-[:BELONGS_TO_CLASS]->(cr:ClassRoom {classId: $classId})
-        RETURN s ORDER BY s.sessionNumber ASC
+        RETURN s, cr
+        ORDER BY s.sessionNumber ASC
         """)
     List<SessionNode> findByClassId(String classId);
 

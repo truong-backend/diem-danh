@@ -11,4 +11,7 @@ public interface UserService {
     void deleteUser(String userId);
     void changeRole(String userId, String role);
     PageResponse<UserResponse> listUsers(String role, String search, int page, int size);
+
+    void activateUser(String userId);
+    void deactivateUser(String userId);
 }
