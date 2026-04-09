@@ -8,6 +8,7 @@ export interface User {
   phone?: string
   active: boolean
   createdAt?: string
+  avatarUrl?: string
 }
 
 export interface AuthUser {
@@ -16,6 +17,7 @@ export interface AuthUser {
   fullName: string
   role: 'ADMIN' | 'TEACHER' | 'STUDENT'
   studentId?: string
+  avatarUrl?: string
 }
 
 export interface LoginCredentials {

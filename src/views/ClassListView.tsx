@@ -265,6 +265,7 @@ export default function ClassListView() {
                 <select
                   className="input"
                   value={form.schedule}
+                  required
                   onChange={(e) =>
                     setForm((f) => ({ ...f, schedule: e.target.value }))
                   }

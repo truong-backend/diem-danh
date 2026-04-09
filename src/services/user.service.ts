@@ -48,4 +48,27 @@ export const userService = {
   async deactivateUser(userId: string) {
     await api.put(`/users/${userId}/deactivate`); // ✅ đúng endpoint
   },
+  // Thêm vào userService
+  async updateProfile(data: {
+    fullName?: string;
+    phone?: string;
+    password?: string;
+    avatarUrl?: string;
+  }) {
+    const res = await api.put<ApiResponse<User>>(`/users/me/profile`, data);
+    return res.data.data;
+  },
+
+  async uploadAvatar(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await api.post<ApiResponse<string>>(
+      "/users/me/avatar",
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return res.data.data;
+  },
 };

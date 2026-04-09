@@ -9,6 +9,8 @@ import QrCheckInView from '../views/QrCheckInView'
 import ReportView from '../views/ReportView'
 import CourseView from '../views/CourseView'
 import Layout from '../components/ui/Layout'
+import ChatView from '../views/ChatView'
+import ProfileView from '../views/ProfileView'
 
 export default function AppRouter() {
   return (
@@ -25,6 +27,8 @@ export default function AppRouter() {
           <Route path="users" element={<StudentListView />} />
           <Route path="courses" element={<CourseView />} />
           <Route path="qr-checkin" element={<QrCheckInView />} />
+          <Route path="chat" element={<ChatView />} />
+          <Route path="profile" element={<ProfileView />} />
         </Route>
       </Routes>
     </BrowserRouter>

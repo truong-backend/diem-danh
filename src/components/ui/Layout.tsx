@@ -1,40 +1,84 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
-import { useAuthViewModel } from '../../viewmodels/useAuthViewModel'
-import { LayoutDashboard, BookOpen, Users, QrCode, LogOut, Menu, BookMarked } from 'lucide-react'
-import { useState } from 'react'
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { useAuthViewModel } from "../../viewmodels/useAuthViewModel";
+import { MessageSquare } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Users,
+  QrCode,
+  LogOut,
+  Menu,
+  BookMarked,
+} from "lucide-react";
+import { useState } from "react";
+import { UserCircle } from "lucide-react";
 
 const navItems = [
-  { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard',  roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
-  { to: '/classes',    icon: BookOpen,         label: 'Lớp học',    roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
-  { to: '/courses',    icon: BookMarked,       label: 'Môn học',    roles: ['ADMIN'] },
-  { to: '/users',      icon: Users,            label: 'Người dùng', roles: ['ADMIN', 'TEACHER'] },
-  { to: '/qr-checkin', icon: QrCode,           label: 'Điểm danh QR', roles: ['STUDENT'] },
-]
+  {
+    to: "/dashboard",
+    icon: LayoutDashboard,
+    label: "Dashboard",
+    roles: ["ADMIN", "TEACHER", "STUDENT"],
+  },
+  {
+    to: "/classes",
+    icon: BookOpen,
+    label: "Lớp học",
+    roles: ["ADMIN", "TEACHER", "STUDENT"],
+  },
+  { to: "/courses", icon: BookMarked, label: "Môn học", roles: ["ADMIN"] },
+  {
+    to: "/users",
+    icon: Users,
+    label: "Người dùng",
+    roles: ["ADMIN", "TEACHER"],
+  },
+  {
+    to: "/qr-checkin",
+    icon: QrCode,
+    label: "Điểm danh QR",
+    roles: ["STUDENT"],
+  },
+  {
+    to: "/chat",
+    icon: MessageSquare,
+    label: "Tin nhắn",
+    roles: ["ADMIN", "TEACHER", "STUDENT"],
+  },
+  {
+    to: "/profile",
+    icon: UserCircle,
+    label: "Trang cá nhân",
+    roles: ["ADMIN", "TEACHER", "STUDENT"],
+  },
+];
 
 export default function Layout() {
-  const { user } = useAuth()
-  const { logout } = useAuthViewModel()
-  const navigate = useNavigate()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const { user } = useAuth();
+  const { logout } = useAuthViewModel();
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const visibleItems = navItems.filter(item =>
-    user && item.roles.includes(user.role)
-  )
+  const visibleItems = navItems.filter(
+    (item) => user && item.roles.includes(user.role),
+  );
 
   const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
-      <aside className={`
+      <aside
+        className={`
         fixed inset-y-0 left-0 z-40 w-64 bg-white border-r flex flex-col
         transform transition-transform lg:relative lg:translate-x-0
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+        ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
+      >
         {/* Logo */}
         <div className="px-6 py-5 border-b">
           <div className="flex items-center gap-3">
@@ -47,15 +91,15 @@ export default function Layout() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {visibleItems.map(item => (
+          {visibleItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`
               }
               onClick={() => setMobileOpen(false)}
@@ -66,31 +110,20 @@ export default function Layout() {
           ))}
         </nav>
 
-        {/* User info + Logout */}
-        <div className="px-4 py-4 border-t">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm">
-              {user?.fullName?.charAt(0)?.toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">{user?.fullName}</p>
-              <p className="text-xs text-slate-500 capitalize">
-                {user?.role === 'ADMIN' ? 'Quản trị viên' : user?.role === 'TEACHER' ? 'Giáo viên' : 'Sinh viên'}
-              </p>
-            </div>
-          </div>
-          <button
+ <button
             className="flex items-center gap-2 text-sm text-slate-500 hover:text-red-600 w-full px-2 py-1.5 rounded hover:bg-red-50 transition-colors"
             onClick={handleLogout}
           >
             <LogOut className="w-4 h-4" /> Đăng xuất
           </button>
-        </div>
       </aside>
 
       {/* Mobile overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
       {/* Main */}
@@ -105,5 +138,5 @@ export default function Layout() {
         <Outlet />
       </main>
     </div>
-  )
+  );
 }
