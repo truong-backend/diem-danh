@@ -6,8 +6,10 @@ import com.example.diem_danh.dto.response.UserResponse;
 import com.example.diem_danh.exception.AttendanceException;
 import com.example.diem_danh.model.node.*;
 import com.example.diem_danh.repository.*;
+import com.example.diem_danh.service.ChatService;
 import com.example.diem_danh.service.ClassRoomService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClassRoomServiceImpl implements ClassRoomService {
@@ -23,6 +26,9 @@ public class ClassRoomServiceImpl implements ClassRoomService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final UserServiceImpl userService;
+
+    /** Inject ChatService để tự động tạo CLASS conversation */
+    private final ChatService chatService;
 
     @Override
     @Transactional
@@ -44,7 +50,23 @@ public class ClassRoomServiceImpl implements ClassRoomService {
                 .teacher(teacher)
                 .build();
 
-        return toResponse(classRoomRepository.save(cr));
+        ClassRoomNode saved = classRoomRepository.save(cr);
+
+        // Tự động tạo CLASS conversation cho lớp học vừa tạo.
+        // Lúc mới tạo lớp chưa có sinh viên → memberIds chỉ có giáo viên.
+        // Khi enroll sinh viên sau đó, thêm sv vào conversation luôn.
+        try {
+            chatService.createClassConversation(
+                    saved.getClassId(),
+                    saved.getName(),
+                    teacher.getUserId(),
+                    List.of() // Sinh viên sẽ được thêm khi enrollStudent
+            );
+        } catch (Exception e) {
+            log.warn("Không thể tạo CLASS conversation cho lớp {}: {}", saved.getClassId(), e.getMessage());
+        }
+
+        return toResponse(saved);
     }
 
     @Override
@@ -72,6 +94,14 @@ public class ClassRoomServiceImpl implements ClassRoomService {
         userRepository.findByUserId(studentId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy sinh viên"));
         classRoomRepository.enrollStudent(classId, studentId);
+
+        // Thêm sinh viên vào CLASS conversation tương ứng
+        try {
+            chatService.addMemberToClassConversation(classId, studentId);
+        } catch (Exception e) {
+            log.warn("Không thể thêm sinh viên {} vào CLASS conversation của lớp {}: {}",
+                    studentId, classId, e.getMessage());
+        }
     }
 
     @Override
@@ -86,6 +116,7 @@ public class ClassRoomServiceImpl implements ClassRoomService {
         return cr.getStudents()
                 .stream().map(userService::toResponse).collect(Collectors.toList());
     }
+
     private ClassRoomNode findClass(String classId) {
         return classRoomRepository.findByClassId(classId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));

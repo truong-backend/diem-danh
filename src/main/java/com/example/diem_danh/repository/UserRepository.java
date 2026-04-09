@@ -43,4 +43,22 @@ public interface UserRepository extends Neo4jRepository<UserNode, Long> {
         RETURN count(u)
         """)
     Long countSearchUsers(String role, String search);
+
+    /**
+     * Search all users (any role) for chat — by fullName, email or studentId.
+     * Used by the chat user-picker without role restriction.
+     */
+    @Query("""
+        MATCH (u:User)
+        WHERE u.active = true
+          AND ($keyword IS NULL
+               OR u.fullName CONTAINS $keyword
+               OR u.email CONTAINS $keyword
+               OR u.studentId CONTAINS $keyword
+               OR u.userId CONTAINS $keyword)
+        RETURN u
+        ORDER BY u.fullName ASC
+        SKIP $skip LIMIT $limit
+        """)
+    List<UserNode> searchUsersForChat(String keyword, int skip, int limit);
 }

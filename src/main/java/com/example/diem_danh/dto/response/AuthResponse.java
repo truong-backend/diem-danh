@@ -17,5 +17,6 @@ public class AuthResponse {
         private String fullName;
         private String role;
         private String studentId;
+        private String avatarUrl;
     }
 }

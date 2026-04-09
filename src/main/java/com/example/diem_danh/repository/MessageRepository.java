@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface MessageRepository extends Neo4jRepository<MessageNode, Long> {
 
+    @Query("MATCH (m:Message {messageId: $messageId}) RETURN m")
     Optional<MessageNode> findByMessageId(String messageId);
 
     @Query("""

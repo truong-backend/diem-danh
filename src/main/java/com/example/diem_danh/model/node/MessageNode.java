@@ -42,13 +42,13 @@ public class MessageNode {
     private String fileName;
 
     @Property("isEdited")
-    private boolean isEdited;
+    private boolean edited;
 
     @Property("isDeleted")
-    private boolean isDeleted;
+    private boolean deleted;
 
     @Property("isPinned")
-    private boolean isPinned;
+    private boolean pinned;
 
     @Property("createdAt")
     private LocalDateTime createdAt;

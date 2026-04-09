@@ -20,12 +20,23 @@ public class ConversationNode {
     @Property("conversationId")
     private String conversationId;
 
-    /** null => chat 1-1; non-null => nhóm */
+    /**
+     * Loại cuộc trò chuyện:
+     * - PRIVATE: chat 1-1 giữa 2 người
+     * - GROUP: nhóm tự tạo bởi giáo viên/admin
+     * - CLASS: nhóm lớp học (tự động tạo khi tạo lớp, gắn classId)
+     */
+    @Property("type")
+    @Builder.Default
+    private String type = "PRIVATE"; // PRIVATE | GROUP | CLASS
+
+    /** Tên nhóm (null với PRIVATE) */
     @Property("name")
     private String name;
 
-    @Property("isGroup")
-    private boolean isGroup;
+    /** classId liên kết — chỉ dùng với type = CLASS */
+    @Property("classId")
+    private String classId;
 
     @Property("avatarUrl")
     private String avatarUrl;
@@ -42,7 +53,7 @@ public class ConversationNode {
     @Builder.Default
     private List<String> memberIds = new ArrayList<>();
 
-    /** userId admin nhóm */
+    /** userId admin nhóm (trong CLASS: giáo viên phụ trách) */
     @Property("adminIds")
     @Builder.Default
     private List<String> adminIds = new ArrayList<>();
@@ -51,4 +62,18 @@ public class ConversationNode {
     @Property("pinnedMessageIds")
     @Builder.Default
     private List<String> pinnedMessageIds = new ArrayList<>();
+
+    /** true => đây là nhóm chung toàn hệ thống */
+    @Property("isGlobal")
+    @Builder.Default
+    private boolean isGlobal = false;
+
+    // ── Backward-compat ────────────────────────────────────────────
+    public boolean isGroup() {
+        return "GROUP".equals(type) || "CLASS".equals(type);
+    }
+
+    public void setGroup(boolean group) {
+        // no-op — type là nguồn sự thật
+    }
 }

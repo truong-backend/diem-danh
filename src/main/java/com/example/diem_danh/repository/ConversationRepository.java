@@ -18,10 +18,17 @@ public interface ConversationRepository extends Neo4jRepository<ConversationNode
 
     @Query("""
         MATCH (c:Conversation)
-        WHERE c.isGroup = false
+        WHERE c.type = 'PRIVATE'
           AND $uid1 IN c.memberIds
           AND $uid2 IN c.memberIds
         RETURN c LIMIT 1
         """)
     Optional<ConversationNode> findDirectConversation(String uid1, String uid2);
+
+    /** Tìm CLASS conversation của một lớp học — mỗi lớp chỉ có đúng 1 */
+    @Query("MATCH (c:Conversation) WHERE c.type = 'CLASS' AND c.classId = $classId RETURN c LIMIT 1")
+    Optional<ConversationNode> findByClassId(String classId);
+
+    @Query("MATCH (c:Conversation) WHERE c.isGlobal = true RETURN c LIMIT 1")
+    Optional<ConversationNode> findGlobalConversation();
 }

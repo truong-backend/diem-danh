@@ -1,6 +1,8 @@
 package com.example.diem_danh.config;
 
+import com.example.diem_danh.model.node.ConversationNode;
 import com.example.diem_danh.model.node.UserNode;
+import com.example.diem_danh.repository.ConversationRepository;
 import com.example.diem_danh.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +20,50 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ConversationRepository conversationRepository;
 
     @Override
     public void run(String... args) {
         seedDefaultUsers();
+        seedGlobalConversation();
+    }
+
+    private void seedGlobalConversation() {
+        conversationRepository.findGlobalConversation().ifPresentOrElse(
+                globalConv -> {
+                    // Đảm bảo tất cả user hiện có đều là thành viên
+                    List<UserNode> allUsers = userRepository.findAll();
+                    boolean changed = false;
+                    for (UserNode u : allUsers) {
+                        if (u.isActive() && !globalConv.getMemberIds().contains(u.getUserId())) {
+                            globalConv.getMemberIds().add(u.getUserId());
+                            changed = true;
+                        }
+                    }
+                    if (changed) conversationRepository.save(globalConv);
+                    log.info("[DataInitializer] Global conversation đã tồn tại, đồng bộ thành viên.");
+                },
+                () -> {
+                    // Tạo mới conversation chung
+                    List<UserNode> allUsers = userRepository.findAll();
+                    List<String> memberIds = new java.util.ArrayList<>();
+                    allUsers.stream().filter(UserNode::isActive)
+                            .forEach(u -> memberIds.add(u.getUserId()));
+                    ConversationNode globalConv = ConversationNode.builder()
+                            .conversationId("GLOBAL-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                            .name("Toàn trường")
+                            .type("GROUP")
+                            .isGlobal(true)
+                            .createdBy("SYSTEM")
+                            .createdAt(LocalDateTime.now())
+                            .memberIds(memberIds)
+                            .adminIds(new java.util.ArrayList<>())
+                            .pinnedMessageIds(new java.util.ArrayList<>())
+                            .build();
+                    conversationRepository.save(globalConv);
+                    log.info("[DataInitializer] Tạo global conversation 'Toàn trường' với {} thành viên.", memberIds.size());
+                }
+        );
     }
 
     private void seedDefaultUsers() {

@@ -13,8 +13,13 @@ public class MessageResponse {
     private String type;
     private String fileUrl;
     private String fileName;
+    @com.fasterxml.jackson.annotation.JsonProperty("isEdited")
     private boolean isEdited;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isDeleted")
     private boolean isDeleted;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isPinned")
     private boolean isPinned;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

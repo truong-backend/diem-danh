@@ -1,6 +1,7 @@
 package com.example.diem_danh.service;
 
 import com.example.diem_danh.dto.request.CreateUserRequest;
+import com.example.diem_danh.dto.request.UpdateUserRequest;
 import com.example.diem_danh.dto.response.PageResponse;
 import com.example.diem_danh.dto.response.UserResponse;
 
@@ -14,4 +15,5 @@ public interface UserService {
 
     void activateUser(String userId);
     void deactivateUser(String userId);
+    UserResponse updateUser(String userId, UpdateUserRequest req);
 }

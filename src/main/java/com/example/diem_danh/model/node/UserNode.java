@@ -47,4 +47,7 @@ public class UserNode {
 
     @Property("refreshToken")
     private String refreshToken;
+
+    // Thêm field vào UserNode
+    private String avatarUrl;
 }
