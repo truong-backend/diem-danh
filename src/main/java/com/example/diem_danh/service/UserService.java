@@ -4,16 +4,19 @@ import com.example.diem_danh.dto.request.CreateUserRequest;
 import com.example.diem_danh.dto.request.UpdateUserRequest;
 import com.example.diem_danh.dto.response.PageResponse;
 import com.example.diem_danh.dto.response.UserResponse;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface UserService {
     UserResponse createUser(CreateUserRequest req);
     UserResponse getUserById(String userId);
     UserResponse updateUser(String userId, CreateUserRequest req);
+    UserResponse updateUser(String userId, UpdateUserRequest req);
     void deleteUser(String userId);
     void changeRole(String userId, String role);
     PageResponse<UserResponse> listUsers(String role, String search, int page, int size);
-
     void activateUser(String userId);
     void deactivateUser(String userId);
-    UserResponse updateUser(String userId, UpdateUserRequest req);
+    List<UserResponse> importFromExcel(MultipartFile file);
 }

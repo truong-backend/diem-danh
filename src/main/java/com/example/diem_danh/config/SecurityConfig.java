@@ -38,6 +38,7 @@ public class SecurityConfig {
                                 // Thêm dòng này:
                                 .requestMatchers("/ws/**").permitAll()
                                 .requestMatchers("/api/chat/files/**").permitAll()
+                                .requestMatchers("/api/health").permitAll()
 // Giữ nguyên các dòng còn lại
                                 .anyRequest().authenticated()
                 )

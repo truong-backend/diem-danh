@@ -7,4 +7,6 @@ import lombok.Data;
 public class QrAttendanceRequest {
     @NotBlank
     private String qrToken;
+    // Client gửi thêm thông tin thiết bị (optional)
+    private String deviceInfo;
 }

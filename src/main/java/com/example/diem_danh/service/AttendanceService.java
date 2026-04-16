@@ -3,7 +3,6 @@ package com.example.diem_danh.service;
 import com.example.diem_danh.dto.request.ManualAttendanceRequest;
 import com.example.diem_danh.dto.request.QrAttendanceRequest;
 import com.example.diem_danh.dto.response.AttendanceResponse;
-
 import java.util.List;
 
 public interface AttendanceService {
@@ -11,5 +10,7 @@ public interface AttendanceService {
     List<AttendanceResponse> checkInManual(ManualAttendanceRequest req);
     List<AttendanceResponse> getAttendanceBySession(String sessionId);
     AttendanceResponse updateStatus(String attendanceId, String status, String note);
+    AttendanceResponse updateStatusWithAudit(String attendanceId, String status,
+                                             String note, String updatedByUserId);
     List<AttendanceResponse> getStudentHistory(String studentId);
 }

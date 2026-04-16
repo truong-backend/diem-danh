@@ -8,14 +8,14 @@ import com.example.diem_danh.service.MinioService;
 import com.example.diem_danh.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.MediaType;
-import java.nio.file.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -49,8 +49,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userService.getUserById(id)));
     }
 
-
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
@@ -80,8 +78,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Đã vô hiệu hóa tài khoản", null));
     }
 
-
-    // Sửa endpoint PUT /{id}
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResponseEntity<ApiResponse<UserResponse>> update(@PathVariable String id,
@@ -89,7 +85,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userService.updateUser(id, req)));
     }
 
-    // Thêm endpoint PUT /me/avatar
     @PutMapping("/me/profile")
     public ResponseEntity<ApiResponse<UserResponse>> updateMyProfile(
             @RequestBody UpdateUserRequest req,
@@ -101,14 +96,20 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> uploadAvatar(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal UserPrincipal principal) throws Exception {
-        // Upload lên MinIO
         String avatarUrl = minioService.uploadFile("avatars", file);
-
-        // Lưu URL vào DB
         UpdateUserRequest req = new UpdateUserRequest();
         req.setAvatarUrl(avatarUrl);
         userService.updateUser(principal.getUserId(), req);
-
         return ResponseEntity.ok(ApiResponse.success(avatarUrl));
+    }
+
+    /** Import sinh viên từ file Excel — chỉ ADMIN */
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> importExcel(
+            @RequestParam("file") MultipartFile file) {
+        List<UserResponse> result = userService.importFromExcel(file);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Import thành công " + result.size() + " người dùng", result));
     }
 }

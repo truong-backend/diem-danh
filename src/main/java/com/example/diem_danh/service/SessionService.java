@@ -9,4 +9,5 @@ public interface SessionService {
     SessionResponse getSession(String sessionId);
     SessionResponse updateSession(String sessionId, CreateSessionRequest req);
     List<SessionResponse> getSessionsByClass(String classId);
+    void deleteSession(String sessionId);
 }

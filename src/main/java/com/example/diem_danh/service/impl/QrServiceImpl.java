@@ -1,17 +1,18 @@
 package com.example.diem_danh.service.impl;
 
-
 import com.example.diem_danh.dto.response.QrResponse;
 import com.example.diem_danh.exception.AttendanceException;
 import com.example.diem_danh.model.node.SessionNode;
 import com.example.diem_danh.repository.SessionRepository;
 import com.example.diem_danh.security.JwtService;
 import com.example.diem_danh.service.QrService;
+import com.example.diem_danh.service.RedisService;
 import com.google.zxing.*;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +20,16 @@ import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QrServiceImpl implements QrService {
 
     private final SessionRepository sessionRepository;
     private final JwtService jwtService;
+    private final RedisService redisService;   // NEW
 
     @Override
     @Transactional
@@ -36,29 +40,61 @@ public class QrServiceImpl implements QrService {
         String qrToken = jwtService.generateQrToken(sessionId,
                 session.getClassRoom() != null ? session.getClassRoom().getClassId() : "");
 
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(
-                jwtService.getQrExpiration() / 1000);
+        long ttlSeconds = jwtService.getQrExpiration() / 1000;
+        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(ttlSeconds);
 
-        String qrContent = "ATD:" + qrToken;
+        String qrContent  = "ATD:" + qrToken;
         String base64Image = generateQrImage(qrContent);
 
+        // Lưu vào DB
         session.setQrToken(qrToken);
         session.setQrExpiresAt(expiresAt);
         session.setQrImageBase64(base64Image);
         session.setStatus("ONGOING");
         sessionRepository.save(session);
 
+        // Cache token vào Redis (TTL = thời gian QR còn hiệu lực)
+        redisService.saveQrToken(sessionId, qrToken, ttlSeconds);
+        log.info("QR generated and cached for session={}, ttl={}s", sessionId, ttlSeconds);
+
         return QrResponse.builder()
                 .qrToken(qrToken)
                 .qrImageBase64(base64Image)
                 .expiresAt(expiresAt)
-                .expiresInSeconds(jwtService.getQrExpiration() / 1000)
+                .expiresInSeconds(ttlSeconds)
                 .sessionId(sessionId)
                 .build();
     }
 
     @Override
     public QrResponse getActiveQr(String sessionId) {
+        // Ưu tiên lấy từ Redis cache trước
+        Optional<String> cachedToken = redisService.getQrToken(sessionId);
+
+        if (cachedToken.isPresent()) {
+            // Tính thời gian còn lại từ JWT
+            String token = cachedToken.get();
+            long secondsLeft = 0;
+            try {
+                long expMs = jwtService.extractExpiration(token).getTime();
+                secondsLeft = (expMs - System.currentTimeMillis()) / 1000;
+            } catch (Exception ignored) {}
+
+            if (secondsLeft > 0) {
+                // Lấy ảnh QR từ DB
+                SessionNode session = sessionRepository.findBySessionId(sessionId)
+                        .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy buổi học"));
+                return QrResponse.builder()
+                        .qrToken(token)
+                        .qrImageBase64(session.getQrImageBase64())
+                        .expiresAt(session.getQrExpiresAt())
+                        .expiresInSeconds(secondsLeft)
+                        .sessionId(sessionId)
+                        .build();
+            }
+        }
+
+        // Fallback: kiểm tra DB
         SessionNode session = sessionRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy buổi học"));
 

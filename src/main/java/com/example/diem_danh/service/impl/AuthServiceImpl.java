@@ -8,6 +8,7 @@ import com.example.diem_danh.model.node.UserNode;
 import com.example.diem_danh.repository.UserRepository;
 import com.example.diem_danh.security.JwtService;
 import com.example.diem_danh.service.AuthService;
+import com.example.diem_danh.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final RedisService redisService;
 
     @Override
     @Transactional
@@ -68,7 +70,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, String accessToken) {
+        // Blacklist access token vào Redis để vô hiệu hóa ngay
+        if (accessToken != null && !accessToken.isBlank()) {
+            try {
+                long remainingMs = jwtService.extractExpiration(accessToken).getTime() - System.currentTimeMillis();
+                redisService.blacklistJwt(accessToken, remainingMs / 1000);
+            } catch (Exception ignored) {}
+        }
+        // Xóa refresh token khỏi DB
         userRepository.findByRefreshToken(refreshToken).ifPresent(user -> {
             user.setRefreshToken(null);
             userRepository.save(user);

@@ -47,13 +47,19 @@ public class AttendanceController {
                 attendanceService.getAttendanceBySession(sessionId)));
     }
 
+    /** Cập nhật trạng thái kèm audit log (lưu người sửa) */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ApiResponse<AttendanceResponse>> updateStatus(
             @PathVariable String id,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal UserPrincipal principal) {
         return ResponseEntity.ok(ApiResponse.success(
-                attendanceService.updateStatus(id, body.get("status"), body.get("note"))));
+                attendanceService.updateStatusWithAudit(
+                        id,
+                        body.get("status"),
+                        body.get("note"),
+                        principal.getUserId())));
     }
 
     @GetMapping("/students/{studentId}")

@@ -46,6 +46,13 @@ public class SessionController {
         return ResponseEntity.ok(ApiResponse.success(sessionService.updateSession(id, req)));
     }
 
+    @DeleteMapping("/api/sessions/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
+        sessionService.deleteSession(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa buổi học", null));
+    }
+
     @PostMapping("/api/sessions/{id}/qr")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ApiResponse<QrResponse>> generateQr(

@@ -11,6 +11,10 @@ public class AttendanceResponse {
     private String method;
     private LocalDateTime checkedInAt;
     private String note;
+    private String ipAddress;
+    private String deviceInfo;
+    private String updatedBy;
+    private LocalDateTime updatedAt;
     private StudentInfo student;
     private SessionInfo session;
 

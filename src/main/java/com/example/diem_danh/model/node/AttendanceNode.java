@@ -30,6 +30,22 @@ public class AttendanceNode {
     @Property("note")
     private String note;
 
+    /** IP address của client khi điểm danh QR */
+    @Property("ipAddress")
+    private String ipAddress;
+
+    /** Thông tin thiết bị (User-Agent hoặc deviceInfo từ client) */
+    @Property("deviceInfo")
+    private String deviceInfo;
+
+    /** userId của người chỉnh sửa trạng thái gần nhất */
+    @Property("updatedBy")
+    private String updatedBy;
+
+    /** Thời gian chỉnh sửa gần nhất */
+    @Property("updatedAt")
+    private LocalDateTime updatedAt;
+
     @Relationship(type = "ATTENDED_BY", direction = Relationship.Direction.OUTGOING)
     private UserNode student;
 

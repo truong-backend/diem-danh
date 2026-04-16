@@ -25,6 +25,17 @@ public interface SessionRepository extends Neo4jRepository<SessionNode, Long> {
     @Query("MATCH (s:Session) RETURN count(s)")
     Long countAll();
 
+    /**
+     * Kiểm tra buổi học trùng: cùng lớp + cùng sessionNumber
+     * Dùng để chặn tạo duplicate.
+     */
+    @Query("""
+        MATCH (s:Session)-[:BELONGS_TO_CLASS]->(cr:ClassRoom {classId: $classId})
+        WHERE s.sessionNumber = $sessionNumber
+        RETURN count(s) > 0
+        """)
+    boolean existsByClassIdAndSessionNumber(String classId, int sessionNumber);
+
     @Query("""
         MATCH (s:Session)-[:BELONGS_TO_CLASS]->(cr:ClassRoom {classId: $classId})
         RETURN count(s)
