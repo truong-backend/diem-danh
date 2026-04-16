@@ -43,6 +43,7 @@ export default function SessionAttendanceView() {
     loading: sessLoading,
     createSession,
     updateSession,
+    deleteSession,
   } = useSessionViewModel(classId!);
   const {
     classRoom,
@@ -316,6 +317,26 @@ export default function SessionAttendanceView() {
                             }}
                           >
                             <QrCode className="w-4 h-4" />
+                          </button>
+                          <button
+                            className="p-2 rounded-lg hover:bg-red-100 text-red-500"
+                            title="Xóa buổi học"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteSession(s.sessionId);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            className="p-2 rounded-lg hover:bg-red-100 text-red-500"
+                            title="Xóa buổi học"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteSession(s.sessionId);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                           <button
                             className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"

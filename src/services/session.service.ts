@@ -1,56 +1,24 @@
-import api from "./api";
-import type {
-  Session,
-  QrData,
-  CreateSessionPayload,
-} from "../models/session.model";
-import type { ApiResponse } from "../models/report.model";
+import api from './api'
+import type { Session, CreateSessionPayload } from '../models/session.model'
+
+const BASE = '/classrooms'
 
 export const sessionService = {
-  async list(classId: string): Promise<Session[]> {
-    const res = await api.get<ApiResponse<Session[]>>(
-      `/classrooms/${classId}/sessions`,
-    );
-    return res.data.data;
-  },
+  list: (classId: string): Promise<Session[]> =>
+    api.get(`${BASE}/${classId}/sessions`).then(r => r.data.data),
 
-  async listByClass(classId: string): Promise<Session[]> {
-    return this.list(classId);
-  },
+  create: (classId: string, payload: CreateSessionPayload): Promise<Session> =>
+    api.post(`${BASE}/${classId}/sessions`, payload).then(r => r.data.data),
 
-  async create(classId: string, data: CreateSessionPayload): Promise<Session> {
-    const res = await api.post<ApiResponse<Session>>(
-      `/classrooms/${classId}/sessions`,
-      data,
-    );
-    return res.data.data;
-  },
+  update: (sessionId: string, payload: CreateSessionPayload): Promise<Session> =>
+    api.put(`/sessions/${sessionId}`, payload).then(r => r.data.data),
 
-  async getOne(sessionId: string): Promise<Session> {
-    const res = await api.get<ApiResponse<Session>>(`/sessions/${sessionId}`);
-    return res.data.data;
-  },
+  delete: (sessionId: string): Promise<void> =>
+    api.delete(`/sessions/${sessionId}`).then(() => undefined),
 
-  async update(
-    sessionId: string,
-    data: CreateSessionPayload,
-  ): Promise<Session> {
-    const res = await api.put<ApiResponse<Session>>(
-      `/sessions/${sessionId}`,
-      data,
-    );
-    return res.data.data;
-  },
+  generateQr: (sessionId: string) =>
+    api.post(`/sessions/${sessionId}/qr`).then(r => r.data.data),
 
-  async generateQr(sessionId: string): Promise<QrData> {
-    const res = await api.post<ApiResponse<QrData>>(
-      `/sessions/${sessionId}/qr`,
-    );
-    return res.data.data;
-  },
-
-  async getQr(sessionId: string): Promise<QrData> {
-    const res = await api.get<ApiResponse<QrData>>(`/sessions/${sessionId}/qr`);
-    return res.data.data;
-  },
-};
+  getQr: (sessionId: string) =>
+    api.get(`/sessions/${sessionId}/qr`).then(r => r.data.data),
+}

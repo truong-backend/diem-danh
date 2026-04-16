@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { sessionService } from '../services/session.service'
-import type { Session, CreateSessionPayload } from '../models/session.model'
-import type { QrData } from '../models/session.model'
+import type { Session, CreateSessionPayload, QrData } from '../models/session.model'
 import toast from 'react-hot-toast'
 
 export function useSessionViewModel(classId: string) {
@@ -12,7 +11,7 @@ export function useSessionViewModel(classId: string) {
     if (!classId) return
     setLoading(true)
     try {
-      setSessions(await sessionService.listByClass(classId))
+      setSessions(await sessionService.list(classId))
     } catch {
       toast.error('Không thể tải danh sách buổi học')
     } finally {
@@ -20,9 +19,7 @@ export function useSessionViewModel(classId: string) {
     }
   }
 
-  useEffect(() => {
-    if (classId) load()
-  }, [classId])
+  useEffect(() => { if (classId) load() }, [classId])
 
   const createSession = async (data: CreateSessionPayload) => {
     try {
@@ -48,7 +45,20 @@ export function useSessionViewModel(classId: string) {
     }
   }
 
-  return { sessions, loading, createSession, updateSession, reload: load }
+  const deleteSession = async (sessionId: string) => {
+    if (!window.confirm('Xác nhận xóa buổi học? Toàn bộ dữ liệu điểm danh của buổi này cũng sẽ bị xóa.')) return false
+    try {
+      await sessionService.delete(sessionId)
+      toast.success('Đã xóa buổi học')
+      await load()
+      return true
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Xóa buổi học thất bại')
+      return false
+    }
+  }
+
+  return { sessions, loading, createSession, updateSession, deleteSession, reload: load }
 }
 
 export function useQrViewModel(sessionId: string) {
@@ -58,10 +68,7 @@ export function useQrViewModel(sessionId: string) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const clearTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-      timerRef.current = null
-    }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
   }
 
   const startCountdown = (expiresAt: string) => {
@@ -87,21 +94,15 @@ export function useQrViewModel(sessionId: string) {
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Tạo QR thất bại')
     } finally {
-      setLoading(false)
-    }
+      setLoading(false) }
   }
 
   const loadExistingQr = async () => {
     if (!sessionId) return
     try {
       const data = await sessionService.getQr(sessionId)
-      if (data && data.qrImageBase64) {
-        setQrData(data)
-        if (data.expiresAt) startCountdown(data.expiresAt)
-      }
-    } catch {
-      // No active QR — ignore silently
-    }
+      if (data?.qrImageBase64) { setQrData(data); if (data.expiresAt) startCountdown(data.expiresAt) }
+    } catch { }
   }
 
   return { qrData, loading, countdown, generateQr, loadExistingQr }

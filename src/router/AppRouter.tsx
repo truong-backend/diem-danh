@@ -11,6 +11,7 @@ import CourseView from '../views/CourseView'
 import Layout from '../components/ui/Layout'
 import ChatView from '../views/ChatView'
 import ProfileView from '../views/ProfileView'
+import TimetableView from '../views/TimetableView'
 
 export default function AppRouter() {
   return (
@@ -20,6 +21,7 @@ export default function AppRouter() {
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardView />} />
+          <Route path="timetable" element={<TimetableView />} />
           <Route path="classes" element={<ClassListView />} />
           <Route path="classes/:classId" element={<SessionAttendanceView />} />
           <Route path="classes/:classId/sessions" element={<SessionAttendanceView />} />
