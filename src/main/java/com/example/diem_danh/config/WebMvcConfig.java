@@ -13,7 +13,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:5173",
                         "http://localhost:3000",
-                        "https://your-frontend.vercel.app"
+                        "https://diem-danh-dev-truong.vercel.app"
                 )
                 .allowedMethods("*")
                 .allowedHeaders("*")
@@ -23,7 +23,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:5173",
                         "http://localhost:3000",
-                        "https://your-frontend.vercel.app"
+                        "https://diem-danh-dev-truong.vercel.app"
                 )
                 .allowedMethods("*")
                 .allowedHeaders("*")
