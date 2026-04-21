@@ -13,7 +13,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:5173",
                         "http://localhost:3000",
-                        "http://91.98.227.3:8082"
+                        "http://91.98.227.3:8082",
+                        "https://webdiemdanh.deploy-my-project.site"
                 )
                 .allowedMethods("*")
                 .allowedHeaders("*")
