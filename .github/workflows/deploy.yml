@@ -32,9 +32,9 @@ jobs:
           push: true
           tags: ghcr.io/${{ env.IMAGE_NAME }}:latest
           build-args: |
-            VITE_API_URL=http://${{ secrets.VPS_HOST }}:8080
-            VITE_WS_URL=http://${{ secrets.VPS_HOST }}:8080/ws
-            VITE_MINIO_URL=http://${{ secrets.VPS_HOST }}:9003
+            VITE_API_URL=https://webdiemdanh.deploy-my-project.site/api
+            VITE_WS_URL=https://webdiemdanh.deploy-my-project.site/ws
+            VITE_MINIO_URL=https://webdiemdanh.deploy-my-project.site/minio
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
