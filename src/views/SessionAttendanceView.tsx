@@ -196,10 +196,11 @@ export default function SessionAttendanceView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Chi tiết lớp học</span>
+          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
             {classRoom?.name || "..."}
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-on-surface-variant mt-1 text-sm">
             {classRoom?.course?.name} • {classRoom?.semester}{" "}
             {classRoom?.academicYear}
             {classRoom?.teacher && ` • GV: ${classRoom.teacher.fullName}`}
@@ -224,12 +225,12 @@ export default function SessionAttendanceView() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b">
+      <div className="flex gap-1 border-b border-outline-variant/20">
         <button
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             tab === "sessions"
-              ? "border-blue-600 text-blue-700"
-              : "border-transparent text-slate-500 hover:text-slate-700"
+              ? "border-primary-800 text-primary-700"
+              : "border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant/40"
           }`}
           onClick={() => setTab("sessions")}
         >
@@ -238,8 +239,8 @@ export default function SessionAttendanceView() {
         <button
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             tab === "students"
-              ? "border-blue-600 text-blue-700"
-              : "border-transparent text-slate-500 hover:text-slate-700"
+              ? "border-primary-800 text-primary-700"
+              : "border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant/40"
           }`}
           onClick={() => setTab("students")}
         >
@@ -251,30 +252,30 @@ export default function SessionAttendanceView() {
       {tab === "sessions" && (
         <>
           <div className="card">
-            <div className="px-5 py-4 border-b">
-              <h2 className="font-semibold text-slate-900">
+            <div className="px-5 py-4 border-b border-outline-variant/15">
+              <h2 className="font-headline font-bold text-on-surface">
                 Danh sách buổi học
               </h2>
             </div>
             {sessLoading ? (
               <TableSkeleton rows={4} />
             ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-outline-variant/10">
                 {sessions.map((s) => (
                   <div
                     key={s.sessionId}
-                    className={`flex items-center px-5 py-4 cursor-pointer hover:bg-slate-50 transition-colors ${
+                    className={`flex items-center px-5 py-4 cursor-pointer hover:bg-surface-container-low transition-colors ${
                       selectedSessionId === s.sessionId
-                        ? "bg-blue-50 border-l-4 border-l-blue-500"
+                        ? "bg-primary-100 border-l-4 border-l-blue-500"
                         : ""
                     }`}
                     onClick={() => setSelectedSessionId(s.sessionId)}
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-slate-900">
+                      <p className="font-medium text-on-surface">
                         Buổi {s.sessionNumber}
                       </p>
-                      <p className="text-sm text-slate-500 mt-0.5">
+                      <p className="text-sm text-on-surface-variant mt-0.5">
                         {format(
                           new Date(s.startTime),
                           "EEEE, dd/MM/yyyy HH:mm",
@@ -289,8 +290,8 @@ export default function SessionAttendanceView() {
                           s.status === "ONGOING"
                             ? "bg-green-100 text-green-700"
                             : s.status === "COMPLETED"
-                              ? "bg-slate-100 text-slate-600"
-                              : "bg-blue-100 text-blue-700"
+                              ? "bg-surface-container text-on-surface-variant"
+                              : "bg-primary-100 text-primary-700"
                         }`}
                       >
                         {s.status === "SCHEDULED"
@@ -302,14 +303,14 @@ export default function SessionAttendanceView() {
                       {(isAdmin || isTeacher) && (
                         <>
                           <button
-                            className="p-2 rounded-lg hover:bg-yellow-100 text-yellow-600"
+                            className="p-2 rounded-xl hover:bg-yellow-100 text-yellow-600"
                             title="Sửa buổi học"
                             onClick={(e) => openEditModal(s, e)}
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
                           <button
-                            className="p-2 rounded-lg hover:bg-blue-100 text-blue-600"
+                            className="p-2 rounded-xl hover:bg-primary-100 text-primary-800"
                             title="Tạo QR"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -319,7 +320,7 @@ export default function SessionAttendanceView() {
                             <QrCode className="w-4 h-4" />
                           </button>
                           <button
-                            className="p-2 rounded-lg hover:bg-red-100 text-red-500"
+                            className="p-2 rounded-xl hover:bg-red-100 text-red-500"
                             title="Xóa buổi học"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -329,7 +330,7 @@ export default function SessionAttendanceView() {
                             <Trash2 className="w-4 h-4" />
                           </button>
                           <button
-                            className="p-2 rounded-lg hover:bg-red-100 text-red-500"
+                            className="p-2 rounded-xl hover:bg-red-100 text-red-500"
                             title="Xóa buổi học"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -339,7 +340,7 @@ export default function SessionAttendanceView() {
                             <Trash2 className="w-4 h-4" />
                           </button>
                           <button
-                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
+                            className="p-2 rounded-xl hover:bg-surface-container text-on-surface-variant"
                             title="Điểm danh thủ công"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -350,7 +351,7 @@ export default function SessionAttendanceView() {
                             <ClipboardList className="w-4 h-4" />
                           </button>
                           <button
-                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
+                            className="p-2 rounded-xl hover:bg-surface-container text-on-surface-variant"
                             title="Xuất Excel"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -365,7 +366,7 @@ export default function SessionAttendanceView() {
                   </div>
                 ))}
                 {sessions.length === 0 && (
-                  <p className="px-5 py-10 text-center text-slate-400">
+                  <p className="px-5 py-10 text-center text-on-surface-variant/60">
                     Chưa có buổi học nào
                   </p>
                 )}
@@ -376,8 +377,8 @@ export default function SessionAttendanceView() {
           {/* Attendance detail for selected session */}
           {selectedSessionId && (
             <div className="card">
-              <div className="px-5 py-4 border-b flex items-center justify-between">
-                <h2 className="font-semibold text-slate-900">
+              <div className="px-5 py-4 border-b border-outline-variant/15 flex items-center justify-between">
+                <h2 className="font-headline font-bold text-on-surface">
                   Danh sách điểm danh
                 </h2>
                 <button
@@ -404,8 +405,8 @@ export default function SessionAttendanceView() {
       {/* Tab: Students */}
       {tab === "students" && (
         <div className="card">
-          <div className="px-5 py-4 border-b flex items-center justify-between">
-            <h2 className="font-semibold text-slate-900">
+          <div className="px-5 py-4 border-b border-outline-variant/15 flex items-center justify-between">
+            <h2 className="font-headline font-bold text-on-surface">
               Danh sách sinh viên trong lớp
             </h2>
             {(isAdmin || isTeacher) && (
@@ -423,17 +424,17 @@ export default function SessionAttendanceView() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-slate-50">
-                    <th className="text-left px-5 py-3 text-slate-500 font-medium">
+                  <tr className="border-b border-outline-variant/15 bg-surface-container/50">
+                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                       MSSV
                     </th>
-                    <th className="text-left px-5 py-3 text-slate-500 font-medium">
+                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                       Họ tên
                     </th>
-                    <th className="text-left px-5 py-3 text-slate-500 font-medium">
+                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                       Email
                     </th>
-                    <th className="text-left px-5 py-3 text-slate-500 font-medium">
+                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                       SĐT
                     </th>
                     {(isAdmin || isTeacher) && <th className="px-5 py-3" />}
@@ -441,13 +442,13 @@ export default function SessionAttendanceView() {
                 </thead>
                 <tbody>
                   {students.map((s) => (
-                    <tr key={s.userId} className="border-b hover:bg-slate-50">
+                    <tr key={s.userId} className="border-b hover:bg-surface-container-low">
                       <td className="px-5 py-3 font-mono text-xs">
                         {s.studentId || "—"}
                       </td>
                       <td className="px-5 py-3 font-medium">{s.fullName}</td>
-                      <td className="px-5 py-3 text-slate-500">{s.email}</td>
-                      <td className="px-5 py-3 text-slate-500">
+                      <td className="px-5 py-3 text-on-surface-variant">{s.email}</td>
+                      <td className="px-5 py-3 text-on-surface-variant">
                         {s.phone || "—"}
                       </td>
                       {(isAdmin || isTeacher) && (
@@ -467,7 +468,7 @@ export default function SessionAttendanceView() {
                     <tr>
                       <td
                         colSpan={5}
-                        className="px-5 py-10 text-center text-slate-400"
+                        className="px-5 py-10 text-center text-on-surface-variant/60"
                       >
                         Chưa có sinh viên nào trong lớp
                       </td>
@@ -493,12 +494,12 @@ export default function SessionAttendanceView() {
               <img
                 src={qrData.qrImageBase64}
                 alt="QR Code"
-                className="w-64 h-64 rounded-xl"
+                className="w-64 h-64 rounded-2xl"
               />
               <div className="text-center">
-                <p className="text-sm text-slate-500">Hết hạn sau</p>
+                <p className="text-sm text-on-surface-variant">Hết hạn sau</p>
                 <p
-                  className={`text-4xl font-bold font-mono ${countdown < 60 ? "text-red-600" : "text-blue-600"}`}
+                  className={`text-4xl font-bold font-mono ${countdown < 60 ? "text-red-600" : "text-primary-800"}`}
                 >
                   {Math.floor(countdown / 60)
                     .toString()
@@ -513,8 +514,8 @@ export default function SessionAttendanceView() {
               )}
             </>
           ) : (
-            <div className="w-64 h-64 bg-slate-100 rounded-xl flex items-center justify-center">
-              <p className="text-slate-400 text-sm text-center px-4">
+            <div className="w-64 h-64 bg-surface-container rounded-2xl flex items-center justify-center">
+              <p className="text-on-surface-variant/60 text-sm text-center px-4">
                 Chưa có QR. Nhấn tạo mới.
               </p>
             </div>
@@ -553,7 +554,7 @@ export default function SessionAttendanceView() {
       >
         <form onSubmit={handleCreateSession} className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
               Số buổi
             </label>
             <input
@@ -567,7 +568,7 @@ export default function SessionAttendanceView() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
               Bắt đầu
             </label>
             <input
@@ -581,7 +582,7 @@ export default function SessionAttendanceView() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
               Kết thúc
             </label>
             <input
@@ -595,7 +596,7 @@ export default function SessionAttendanceView() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
               Phòng học
             </label>
             <input
@@ -626,22 +627,22 @@ export default function SessionAttendanceView() {
       <Modal open={showEditModal} onClose={() => { setShowEditModal(false); setEditingSession(null) }} title={`Sửa buổi ${editingSession?.sessionNumber}`} size="sm">
         <form onSubmit={handleUpdateSession} className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Số buổi</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Số buổi</label>
             <input type="number" className="input" value={editForm.sessionNumber}
               onChange={e => setEditForm(f => ({ ...f, sessionNumber: +e.target.value }))} required />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Bắt đầu</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Bắt đầu</label>
             <input type="datetime-local" className="input" value={editForm.startTime}
               onChange={e => setEditForm(f => ({ ...f, startTime: e.target.value }))} required />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Kết thúc</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Kết thúc</label>
             <input type="datetime-local" className="input" value={editForm.endTime}
               onChange={e => setEditForm(f => ({ ...f, endTime: e.target.value }))} required />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Phòng học</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Phòng học</label>
             <input className="input" placeholder="VD: P.101" value={editForm.room}
               onChange={e => setEditForm(f => ({ ...f, room: e.target.value }))} required />
           </div>
@@ -664,7 +665,7 @@ export default function SessionAttendanceView() {
       >
         <div className="space-y-4">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
             <input
               type="text"
               className="input pl-9"
@@ -674,17 +675,17 @@ export default function SessionAttendanceView() {
             />
           </div>
 
-          <div className="border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+          <div className="border rounded-xl overflow-hidden max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-slate-50 z-10">
-                <tr className="border-b">
-                  <th className="text-left px-4 py-3 text-slate-500 font-medium">
+              <thead className="sticky top-0 bg-surface-container-low z-10">
+                <tr className="border-b border-outline-variant/15 bg-surface-container/50">
+                  <th className="text-left px-4 py-3 text-on-surface-variant font-medium">
                     MSSV
                   </th>
-                  <th className="text-left px-4 py-3 text-slate-500 font-medium">
+                  <th className="text-left px-4 py-3 text-on-surface-variant font-medium">
                     Họ tên
                   </th>
-                  <th className="text-left px-4 py-3 text-slate-500 font-medium">
+                  <th className="text-left px-4 py-3 text-on-surface-variant font-medium">
                     Email
                   </th>
                   <th className="px-4 py-3" />
@@ -695,7 +696,7 @@ export default function SessionAttendanceView() {
                   <tr>
                     <td
                       colSpan={4}
-                      className="px-4 py-8 text-center text-slate-400"
+                      className="px-4 py-8 text-center text-on-surface-variant/60"
                     >
                       Đang tải...
                     </td>
@@ -706,13 +707,13 @@ export default function SessionAttendanceView() {
                     return (
                       <tr
                         key={u.userId}
-                        className={`border-b ${isEnrolled ? "bg-green-50" : "hover:bg-slate-50"}`}
+                        className={`border-b ${isEnrolled ? "bg-green-50" : "hover:bg-surface-container-low"}`}
                       >
                         <td className="px-4 py-3 font-mono text-xs">
                           {u.studentId || "—"}
                         </td>
                         <td className="px-4 py-3 font-medium">{u.fullName}</td>
-                        <td className="px-4 py-3 text-slate-500">{u.email}</td>
+                        <td className="px-4 py-3 text-on-surface-variant">{u.email}</td>
                         <td className="px-4 py-3 text-right">
                           {isEnrolled ? (
                             <span className="text-xs text-green-600 font-medium">
@@ -720,7 +721,7 @@ export default function SessionAttendanceView() {
                             </span>
                           ) : (
                             <button
-                              className="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700"
+                              className="text-xs bg-primary-800 text-white px-3 py-1 rounded-xl hover:bg-primary-700"
                               onClick={() => handleEnroll(u.userId)}
                             >
                               Thêm vào lớp
@@ -735,7 +736,7 @@ export default function SessionAttendanceView() {
                   <tr>
                     <td
                       colSpan={4}
-                      className="px-4 py-8 text-center text-slate-400"
+                      className="px-4 py-8 text-center text-on-surface-variant/60"
                     >
                       Không tìm thấy sinh viên nào
                     </td>

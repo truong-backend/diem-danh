@@ -79,28 +79,28 @@ export function QrScanner({ onScan, active = true }: Props) {
       <div className="relative">
         <div
           id={containerId}
-          className="w-72 h-72 rounded-xl overflow-hidden bg-slate-900"
+          className="w-72 h-72 rounded-2xl overflow-hidden bg-inverse-surface"
         />
         {/* Overlay loading khi camera chưa sẵn */}
         {!ready && !error && active && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-900 rounded-xl">
+          <div className="absolute inset-0 flex items-center justify-center bg-inverse-surface rounded-2xl">
             <div className="text-center">
-              <Camera className="w-8 h-8 text-slate-500 mx-auto animate-pulse" />
-              <p className="text-slate-500 text-sm mt-2">Đang khởi động camera...</p>
+              <Camera className="w-8 h-8 text-on-surface-variant mx-auto animate-pulse" />
+              <p className="text-on-surface-variant text-sm mt-2">Đang khởi động camera...</p>
             </div>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 px-4 py-3 rounded-lg w-full max-w-xs">
+        <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 px-4 py-3 rounded-xl w-full max-w-xs">
           <CameraOff className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {!error && (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-on-surface-variant">
           {ready ? 'Hướng camera vào mã QR để điểm danh' : 'Vui lòng cho phép truy cập camera...'}
         </p>
       )}

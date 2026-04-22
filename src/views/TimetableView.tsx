@@ -58,33 +58,34 @@ export default function TimetableView() {
     const start = new Date(s.startTime)
     const end = new Date(s.endTime)
     if (now >= start && now <= end) return 'bg-green-100 border-green-400 text-green-800'
-    if (now > end) return 'bg-slate-100 border-slate-300 text-slate-500'
-    return 'bg-blue-50 border-blue-300 text-blue-800'
+    if (now > end) return 'bg-surface-container border-outline-variant/30 text-on-surface-variant'
+    return 'bg-primary-100 border-blue-300 text-blue-800'
   }
 
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Thời khóa biểu</h1>
-          <p className="text-slate-500 mt-1">Lịch học theo tuần</p>
+          <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Lịch học</span>
+          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Thời khóa biểu</h1>
+          <p className="text-on-surface-variant mt-1 text-sm">Lịch học theo tuần</p>
         </div>
         <div className="flex items-center gap-2">
           {!isCurrentWeek && (
             <button onClick={goToday}
-              className="border rounded-xl px-3 py-1.5 text-sm text-blue-600 border-blue-200 hover:bg-blue-50">
+              className="border border-primary-800/30 rounded-xl px-3 py-1.5 text-sm font-semibold text-primary-800 hover:bg-primary-100 transition-colors">
               Tuần này
             </button>
           )}
           <button onClick={() => setWeekStart(w => subWeeks(w, 1))}
-            className="p-2 rounded-lg border hover:bg-slate-50">
+            className="p-2 rounded-xl border border-outline-variant/30 hover:bg-surface-container transition-colors">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-medium text-slate-700 min-w-[200px] text-center">
+          <span className="text-sm font-medium text-on-surface min-w-[200px] text-center">
             {format(weekStart, 'dd/MM', { locale: vi })} — {format(addDays(weekStart, 6), 'dd/MM/yyyy', { locale: vi })}
           </span>
           <button onClick={() => setWeekStart(w => addWeeks(w, 1))}
-            className="p-2 rounded-lg border hover:bg-slate-50">
+            className="p-2 rounded-xl border border-outline-variant/30 hover:bg-surface-container transition-colors">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -93,7 +94,7 @@ export default function TimetableView() {
       {loading ? (
         <div className="grid grid-cols-7 gap-3">
           {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="h-64 bg-slate-100 rounded-xl animate-pulse" />
+            <div key={i} className="h-64 bg-surface-container rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : (
@@ -104,19 +105,19 @@ export default function TimetableView() {
             return (
               <div key={idx} className="min-h-[200px]">
                 {/* Day header */}
-                <div className={`text-center py-2 mb-2 rounded-lg ${isToday ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                <div className={`text-center py-2 mb-2 rounded-xl ${isToday ? 'bg-primary-800 text-white' : 'bg-surface-container text-on-surface-variant'}`}>
                   <p className="text-xs font-medium">{DAYS[idx]}</p>
-                  <p className={`text-lg font-bold ${isToday ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-lg font-bold ${isToday ? 'text-white' : 'text-on-surface'}`}>
                     {format(day, 'd')}
                   </p>
                 </div>
                 {/* Sessions */}
                 <div className="space-y-2">
                   {daySessions.length === 0 ? (
-                    <div className="text-center text-slate-300 text-xs py-4">—</div>
+                    <div className="text-center text-on-surface-variant/40 text-xs py-4">—</div>
                   ) : daySessions.map(s => (
                     <div key={s.sessionId}
-                      className={`border rounded-lg px-2 py-1.5 text-xs ${statusColor(s)}`}>
+                      className={`border rounded-xl px-2 py-1.5 text-xs ${statusColor(s)}`}>
                       <p className="font-semibold truncate">{s.className}</p>
                       <p className="mt-0.5 opacity-80">
                         {format(new Date(s.startTime), 'HH:mm')}–{format(new Date(s.endTime), 'HH:mm')}
@@ -132,15 +133,15 @@ export default function TimetableView() {
       )}
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-slate-500 pt-2">
+      <div className="flex items-center gap-4 text-xs text-on-surface-variant pt-2">
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded bg-green-200 border border-green-400 inline-block"></span> Đang diễn ra
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-blue-100 border border-blue-300 inline-block"></span> Sắp tới
+          <span className="w-3 h-3 rounded bg-primary-100 border border-blue-300 inline-block"></span> Sắp tới
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-slate-100 border border-slate-300 inline-block"></span> Đã qua
+          <span className="w-3 h-3 rounded-md bg-surface-container border border-outline-variant/30 inline-block"></span> Đã qua
         </span>
       </div>
     </div>

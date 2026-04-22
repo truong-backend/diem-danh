@@ -68,8 +68,9 @@ export default function ClassListView() {
     <div className="p-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Lớp học</h1>
-          <p className="text-slate-500 mt-1">
+          <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Quản lý lớp học</span>
+          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Lớp học</h1>
+          <p className="text-on-surface-variant mt-1 text-sm">
             {classes.length} lớp đang hoạt động
           </p>
         </div>
@@ -87,25 +88,25 @@ export default function ClassListView() {
         {loading ? (
           <TableSkeleton />
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-outline-variant/10">
             {classes.map((cr) => (
               <div
                 key={cr.classId}
-                className="flex items-center px-5 py-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                className="flex items-center px-5 py-4 hover:bg-surface-container-low cursor-pointer transition-colors group"
                 onClick={() => navigate(`/classes/${cr.classId}`)}
               >
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-900">{cr.name}</p>
-                  <p className="text-sm text-slate-500 mt-0.5">
+                  <p className="font-semibold text-on-surface">{cr.name}</p>
+                  <p className="text-sm text-on-surface-variant mt-0.5">
                     {cr.course?.name} • {cr.semester} {cr.academicYear}
                   </p>
                   {cr.teacher && (
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-on-surface-variant/60 mt-0.5">
                       GV: {cr.teacher.fullName}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-4 text-sm text-slate-500">
+                <div className="flex items-center gap-4 text-sm text-on-surface-variant">
                   <span className="flex items-center gap-1">
                     <Users className="w-4 h-4" />
                     {cr.studentCount || 0} SV
@@ -117,11 +118,11 @@ export default function ClassListView() {
                     </span>
                   )}
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-300 ml-4" />
+                <ChevronRight className="w-5 h-5 text-on-surface-variant/40 ml-4" />
               </div>
             ))}
             {classes.length === 0 && (
-              <p className="px-5 py-10 text-center text-slate-400">
+              <p className="px-5 py-10 text-center text-on-surface-variant/60">
                 Chưa có lớp học nào
               </p>
             )}
@@ -139,8 +140,8 @@ export default function ClassListView() {
         {courses.length === 0 ? (
           <div className="py-8 text-center">
             <Info className="w-10 h-10 text-yellow-400 mx-auto mb-3" />
-            <p className="text-slate-700 font-medium">Chưa có môn học nào</p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-on-surface font-medium">Chưa có môn học nào</p>
+            <p className="text-sm text-on-surface-variant mt-1">
               Vui lòng vào mục <strong>Môn học</strong> để tạo môn học trước khi
               tạo lớp.
             </p>
@@ -154,7 +155,7 @@ export default function ClassListView() {
         ) : (
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">
+              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
                 Tên lớp
               </label>
               <input
@@ -169,7 +170,7 @@ export default function ClassListView() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">
+              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
                 Môn học
               </label>
               <select
@@ -192,7 +193,7 @@ export default function ClassListView() {
             {/* Chọn giáo viên - chỉ hiện với ADMIN */}
             {isAdmin && (
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
                   Giáo viên phụ trách
                 </label>
                 <select
@@ -215,7 +216,7 @@ export default function ClassListView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
                   Học kỳ
                 </label>
                 <input
@@ -228,7 +229,7 @@ export default function ClassListView() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
                   Năm học
                 </label>
                 <input
@@ -244,7 +245,7 @@ export default function ClassListView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
                   Sĩ số tối đa
                 </label>
                 <input
@@ -259,7 +260,7 @@ export default function ClassListView() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
                   Lịch học
                 </label>
                 <select

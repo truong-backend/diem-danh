@@ -1,39 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Public+Sans:ital,wght@0,100..900;1,100..900&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-surface text-on-surface antialiased;
     font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   }
 
   * {
-    @apply border-slate-200;
+    @apply border-outline-variant/30;
   }
 }
 
 @layer components {
+  /* Buttons */
   .btn-primary {
-    @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700
-           transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-primary-800 text-white px-4 py-2 rounded-xl font-semibold text-sm
+           hover:bg-primary-700 transition-all duration-200 
+           disabled:opacity-50 disabled:cursor-not-allowed
+           shadow-sm hover:shadow-md active:scale-[0.98];
   }
   .btn-secondary {
-    @apply bg-white text-slate-700 px-4 py-2 rounded-lg font-medium border
-           hover:bg-slate-50 transition-colors;
+    @apply bg-surface-container-lowest text-on-surface px-4 py-2 rounded-xl font-semibold text-sm border border-outline-variant/50
+           hover:bg-surface-container transition-all duration-200
+           shadow-editorial;
   }
   .btn-danger {
-    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors;
+    @apply bg-error text-white px-4 py-2 rounded-xl font-semibold text-sm
+           hover:opacity-90 transition-all duration-200 active:scale-[0.98];
   }
+
+  /* Cards */
   .card {
-    @apply bg-white rounded-xl border shadow-sm;
+    @apply bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-editorial;
   }
+
+  /* Inputs */
   .input {
-    @apply w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2
-           focus:ring-blue-500 focus:border-transparent;
+    @apply w-full border border-outline-variant/50 rounded-xl px-3 py-2.5 text-sm
+           bg-surface-container-lowest text-on-surface
+           focus:outline-none focus:ring-2 focus:ring-primary-800/30 focus:border-primary-800/50
+           transition-all placeholder:text-on-surface-variant/50;
   }
-  .badge-present { @apply bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium; }
-  .badge-absent { @apply bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-medium; }
-  .badge-late { @apply bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-medium; }
-  .badge-excused { @apply bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium; }
-}
+
+  /* Badges */
+  .badge-present { @apply bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider; }
+  .badge-absent { @apply bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider; }
+  .badge-late { @apply bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider; }
+  .badge-excused { @apply bg-primary-100 text-primary-700 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider; }
+
+  /* Primary gradient */
+  .primary-gradient {
+    background: linear-gradient(135deg, #0042b3 0%, #0057e7 100%);
+  }
+  
+  /* Editorial shadow */
+  .editorial-shadow {
+    box-shadow: 0 12px 40px rgba(25, 28, 30, 0.06);
+  }
+  
+  /* Glass nav */
+  .glass-nav {
+    backdrop-filter: blur(12px);
+  }
+} 

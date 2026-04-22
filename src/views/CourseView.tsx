@@ -78,8 +78,9 @@ export default function CourseView() {
     <div className="p-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Môn học</h1>
-          <p className="text-slate-500 mt-1">{courses.length} môn học trong hệ thống</p>
+          <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Học thuật</span>
+          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Môn học</h1>
+          <p className="text-on-surface-variant mt-1 text-sm">{courses.length} môn học trong hệ thống</p>
         </div>
         {isAdmin && (
           <button className="btn-primary flex items-center gap-2" onClick={() => setShowCreate(true)}>
@@ -88,37 +89,37 @@ export default function CourseView() {
         )}
       </div>
 
-      <div className="card">
+      <div className="card overflow-hidden">
         {loading ? <TableSkeleton /> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-slate-50">
-                  <th className="text-left px-5 py-3 text-slate-500 font-medium">Mã môn</th>
-                  <th className="text-left px-5 py-3 text-slate-500 font-medium">Tên môn học</th>
-                  <th className="text-left px-5 py-3 text-slate-500 font-medium">Số tín chỉ</th>
-                  <th className="text-left px-5 py-3 text-slate-500 font-medium">Mô tả</th>
+                <tr className="border-b border-outline-variant/15 bg-surface-container/50">
+                  <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Mã môn</th>
+                  <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tên môn học</th>
+                  <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Số tín chỉ</th>
+                  <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Mô tả</th>
                   {isAdmin && <th className="px-5 py-3" />}
                 </tr>
               </thead>
               <tbody>
                 {courses.map(c => (
-                  <tr key={c.courseId} className="border-b hover:bg-slate-50">
+                  <tr key={c.courseId} className="border-b border-outline-variant/10 hover:bg-surface-container-low/60 transition-colors">
                     <td className="px-5 py-3">
-                      <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded">{c.code}</span>
+                      <span className="font-mono text-xs bg-surface-container px-2 py-1 rounded-lg border border-outline-variant/20">{c.code}</span>
                     </td>
                     <td className="px-5 py-3 font-medium">
                       <div className="flex items-center gap-2">
-                        <BookMarked className="w-4 h-4 text-blue-500 shrink-0" />
+                        <BookMarked className="w-4 h-4 text-primary-700 shrink-0" />
                         {c.name}
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-slate-500">{c.credits} TC</td>
-                    <td className="px-5 py-3 text-slate-400 max-w-xs truncate">{c.description || '—'}</td>
+                    <td className="px-5 py-3 text-on-surface-variant">{c.credits} TC</td>
+                    <td className="px-5 py-3 text-on-surface-variant/60 max-w-xs truncate">{c.description || '—'}</td>
                     {isAdmin && (
                       <td className="px-5 py-3">
                         <button
-                          className="p-1.5 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                          className="p-1.5 text-blue-400 hover:text-primary-800 hover:bg-primary-100 rounded"
                           title="Sửa môn học"
                           onClick={() => openEdit(c)}
                         >
@@ -130,8 +131,8 @@ export default function CourseView() {
                 ))}
                 {courses.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-12 text-center text-slate-400">
-                      <BookMarked className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                    <td colSpan={5} className="px-5 py-12 text-center text-on-surface-variant/60">
+                      <BookMarked className="w-8 h-8 mx-auto mb-2 text-on-surface-variant/40" />
                       Chưa có môn học nào. {isAdmin && 'Nhấn "Thêm môn học" để tạo mới.'}
                     </td>
                   </tr>
@@ -146,7 +147,7 @@ export default function CourseView() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Thêm môn học mới" size="sm">
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Mã môn học</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Mã môn học</label>
             <input
               type="text" className="input" placeholder="VD: CS101" required
               value={createForm.code}
@@ -154,7 +155,7 @@ export default function CourseView() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Tên môn học</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Tên môn học</label>
             <input
               type="text" className="input" placeholder="VD: Lập trình hướng đối tượng" required
               value={createForm.name}
@@ -162,7 +163,7 @@ export default function CourseView() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Số tín chỉ</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Số tín chỉ</label>
             <input
               type="number" className="input" min={1} max={10} required
               value={createForm.credits}
@@ -170,7 +171,7 @@ export default function CourseView() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Mô tả <span className="text-slate-400 font-normal">(tuỳ chọn)</span></label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Mô tả <span className="text-on-surface-variant/60 font-normal">(tuỳ chọn)</span></label>
             <textarea
               className="input resize-none" rows={3}
               placeholder="Mô tả ngắn về môn học..."
@@ -191,13 +192,13 @@ export default function CourseView() {
       <Modal open={showEdit} onClose={() => setShowEdit(false)} title={`Sửa: ${editTarget?.name}`} size="sm">
         <form onSubmit={handleEdit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">
-              Mã môn <span className="text-slate-400 font-normal">(không thể đổi)</span>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
+              Mã môn <span className="text-on-surface-variant/60 font-normal">(không thể đổi)</span>
             </label>
-            <input type="text" className="input bg-slate-50 text-slate-400" value={editTarget?.code || ''} disabled />
+            <input type="text" className="input bg-surface-container-low text-on-surface-variant/60" value={editTarget?.code || ''} disabled />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Tên môn học</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Tên môn học</label>
             <input
               type="text" className="input" required
               value={editForm.name}
@@ -205,7 +206,7 @@ export default function CourseView() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Số tín chỉ</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Số tín chỉ</label>
             <input
               type="number" className="input" min={1} max={10} required
               value={editForm.credits}
@@ -213,7 +214,7 @@ export default function CourseView() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Mô tả</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Mô tả</label>
             <textarea
               className="input resize-none" rows={3}
               value={editForm.description}

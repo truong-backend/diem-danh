@@ -14,12 +14,12 @@ const sizeMap = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-2xl' }
 export function Modal({ open, onClose, title, children, size = 'md' }: Props) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className={`bg-white rounded-xl shadow-xl w-full ${sizeMap[size]} max-h-[90vh] overflow-y-auto`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h3 className="font-semibold text-slate-900">{title}</h3>
-          <button onClick={onClose} className="p-1 rounded hover:bg-slate-100">
-            <X className="w-5 h-5 text-slate-500" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className={`bg-surface-container-lowest rounded-2xl shadow-editorial-lg border border-outline-variant/20 w-full ${sizeMap[size]} max-h-[90vh] overflow-y-auto`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/15">
+          <h3 className="font-headline font-bold text-on-surface">{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-surface-container transition-colors">
+            <X className="w-4 h-4 text-on-surface-variant" />
           </button>
         </div>
         <div className="p-6">{children}</div>

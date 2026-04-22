@@ -83,7 +83,7 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button onClick={handleOpen}
-        className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-500">
+        className="relative p-2 rounded-xl hover:bg-surface-container text-on-surface-variant">
         <Bell className="w-5 h-5" />
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
@@ -93,45 +93,45 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white border rounded-xl shadow-lg z-50">
-          <div className="flex items-center justify-between px-4 py-3 border-b">
-            <span className="font-semibold text-slate-800">Thông báo</span>
+        <div className="absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-editorial-lg z-50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/15">
+            <span className="font-headline font-bold text-on-surface">Thông báo</span>
             <div className="flex items-center gap-2">
               {unread > 0 && (
                 <button onClick={handleMarkAllRead}
-                  className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                  className="text-xs text-primary-800 hover:text-primary-700 flex items-center gap-1">
                   <CheckCheck className="w-3.5 h-3.5" /> Đọc tất cả
                 </button>
               )}
               <button onClick={() => setOpen(false)}>
-                <X className="w-4 h-4 text-slate-400" />
+                <X className="w-4 h-4 text-on-surface-variant/60" />
               </button>
             </div>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
             {loading && (
-              <div className="py-8 text-center text-slate-400 text-sm">Đang tải...</div>
+              <div className="py-8 text-center text-on-surface-variant/60 text-sm">Đang tải...</div>
             )}
             {!loading && notifications.length === 0 && (
-              <div className="py-8 text-center text-slate-400 text-sm">Không có thông báo</div>
+              <div className="py-8 text-center text-on-surface-variant/60 text-sm">Không có thông báo</div>
             )}
             {notifications.map(n => (
               <div key={n.notificationId}
-                className={`px-4 py-3 border-b last:border-0 hover:bg-slate-50 ${!n.read ? 'bg-blue-50/50' : ''}`}>
+                className={`px-4 py-3 border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low transition-colors ${!n.read ? 'bg-primary-100/40' : ''}`}>
                 <div className="flex gap-2">
                   <span className="text-base flex-shrink-0">{typeIcon(n.type)}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium text-slate-800 ${!n.read ? 'font-semibold' : ''}`}>
+                    <p className={`text-sm font-medium text-on-surface ${!n.read ? 'font-bold' : ''}`}>
                       {n.title}
                     </p>
-                    <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-on-surface-variant mt-0.5">{n.message}</p>
+                    <p className="text-xs text-on-surface-variant/60 mt-1">
                       {new Date(n.createdAt).toLocaleString('vi-VN')}
                     </p>
                   </div>
                   {!n.read && (
-                    <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" />
+                    <span className="w-2 h-2 bg-primary-800 rounded-full flex-shrink-0 mt-1.5" />
                   )}
                 </div>
               </div>

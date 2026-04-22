@@ -76,18 +76,19 @@ export default function ProfileView() {
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Trang cá nhân</h1>
-        <p className="text-slate-500 mt-1">Quản lý thông tin và mật khẩu của bạn</p>
+        <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Tài khoản</span>
+        <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Trang cá nhân</h1>
+        <p className="text-on-surface-variant mt-1 text-sm">Quản lý thông tin và mật khẩu của bạn</p>
       </div>
 
       {/* Avatar */}
       <div className="card p-6 flex items-center gap-6">
         <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+          <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
             {avatarPreview ? (
               <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-3xl font-bold text-blue-700">
+              <span className="text-3xl font-bold text-primary-700">
                 {user?.fullName?.charAt(0)?.toUpperCase()}
               </span>
             )}
@@ -95,7 +96,7 @@ export default function ProfileView() {
           <button
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="absolute bottom-0 right-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 shadow-sm"
+            className="absolute bottom-0 right-0 w-7 h-7 bg-primary-800 rounded-full flex items-center justify-center text-white hover:bg-primary-700 shadow-editorial"
             title="Đổi ảnh đại diện"
           >
             <Camera className="w-3.5 h-3.5" />
@@ -103,9 +104,9 @@ export default function ProfileView() {
           <input type="file" ref={fileRef} className="hidden" accept="image/*" onChange={handleAvatarChange} />
         </div>
         <div>
-          <p className="font-semibold text-slate-900 text-lg">{user?.fullName}</p>
-          <p className="text-slate-500 text-sm">{user?.email}</p>
-          <span className="mt-1 inline-block text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+          <p className="font-semibold text-on-surface text-lg">{user?.fullName}</p>
+          <p className="text-on-surface-variant text-sm">{user?.email}</p>
+          <span className="mt-1 inline-block text-xs px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 font-medium">
             {roleLabel}
           </span>
         </div>
@@ -113,13 +114,13 @@ export default function ProfileView() {
 
       {/* Form */}
       <div className="card p-6">
-        <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+        <h2 className="font-headline font-bold text-on-surface mb-5 flex items-center gap-2 text-lg">
           <User className="w-4 h-4" /> Thông tin cá nhân
         </h2>
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">Họ và tên</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Họ và tên</label>
               <input
                 className="input"
                 required
@@ -128,7 +129,7 @@ export default function ProfileView() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">Số điện thoại</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Số điện thoại</label>
               <input
                 className="input"
                 type="tel"
@@ -140,26 +141,26 @@ export default function ProfileView() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Email</label>
-            <input className="input bg-slate-50 cursor-not-allowed" value={user?.email || ''} disabled />
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Email</label>
+            <input className="input bg-surface-container-low cursor-not-allowed" value={user?.email || ''} disabled />
           </div>
 
           {user?.studentId && (
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">MSSV</label>
-              <input className="input bg-slate-50 cursor-not-allowed" value={user.studentId} disabled />
+              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">MSSV</label>
+              <input className="input bg-surface-container-low cursor-not-allowed" value={user.studentId} disabled />
             </div>
           )}
 
-          <hr className="border-slate-200" />
+          <hr className="border-outline-variant/30" />
 
-          <h3 className="font-medium text-slate-700 flex items-center gap-2 text-sm">
-            <KeyRound className="w-4 h-4" /> Đổi mật khẩu <span className="text-slate-400 font-normal">(để trống nếu không đổi)</span>
+          <h3 className="font-medium text-on-surface flex items-center gap-2 text-sm">
+            <KeyRound className="w-4 h-4" /> Đổi mật khẩu <span className="text-on-surface-variant/60 font-normal">(để trống nếu không đổi)</span>
           </h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">Mật khẩu mới</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Mật khẩu mới</label>
               <input
                 className="input"
                 type="password"
@@ -169,7 +170,7 @@ export default function ProfileView() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">Xác nhận mật khẩu</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Xác nhận mật khẩu</label>
               <input
                 className="input"
                 type="password"

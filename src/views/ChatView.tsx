@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
   const s = size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm";
   return (
-    <div className={`${s} rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold flex-shrink-0`}>
+    <div className={`${s} rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold flex-shrink-0`}>
       {name.charAt(0).toUpperCase()}
     </div>
   );
@@ -48,25 +48,25 @@ function SidebarSection({
   return (
     <div>
       <div className="flex items-center gap-1.5 px-4 pt-3 pb-1">
-        <span className="text-slate-400">{icon}</span>
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
+        <span className="text-on-surface-variant/60">{icon}</span>
+        <span className="text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">{label}</span>
       </div>
       {convs.map((c) => (
         <button
           key={c.conversationId}
           onClick={() => onSelect(c)}
-          className={`w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 transition-colors border-b border-slate-50
-            ${activeConv?.conversationId === c.conversationId ? "bg-blue-50 border-l-2 border-l-blue-500" : ""}`}
+          className={`w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-surface-container-low/70 transition-colors border-b border-outline-variant/10
+            ${activeConv?.conversationId === c.conversationId ? "bg-primary-100 border-l-2 border-l-blue-500" : ""}`}
         >
           <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm
-            ${c.type === "CLASS" ? "bg-emerald-100 text-emerald-700" : c.type === "GROUP" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"}`}>
+            ${c.type === "CLASS" ? "bg-emerald-100 text-emerald-700" : c.type === "GROUP" ? "bg-violet-100 text-violet-700" : "bg-primary-100 text-primary-700"}`}>
             {c.type !== "PRIVATE"
               ? <ConvIcon conv={c} />
               : convDisplayName(c).charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-slate-800 truncate text-sm">{convDisplayName(c)}</p>
-            <p className="text-xs text-slate-400 truncate">
+            <p className="font-medium text-on-surface truncate text-sm">{convDisplayName(c)}</p>
+            <p className="text-xs text-on-surface-variant/60 truncate">
               {c.lastMessage
                 ? c.lastMessage.isDeleted
                   ? "Tin nhắn đã bị thu hồi"
@@ -102,8 +102,8 @@ function PinnedBanner({
         <p className="text-xs font-semibold text-amber-700 mb-0.5">
           📌 Tin nhắn ghim {pinnedMessages.length > 1 ? `(${pinnedMessages.length})` : ""}
         </p>
-        <p className="text-xs text-slate-700 truncate">
-          <span className="font-medium text-blue-700 mr-1">{latest.senderName}:</span>
+        <p className="text-xs text-on-surface truncate">
+          <span className="font-medium text-primary-700 mr-1">{latest.senderName}:</span>
           {latest.content}
         </p>
       </div>
@@ -159,14 +159,14 @@ function UserPickerModal({
 
   return (
     <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-[420px] max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b flex items-center justify-between">
-          <span className="font-semibold text-slate-800">{title}</span>
-          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded"><X className="w-4 h-4" /></button>
+      <div className="bg-surface-container-lowest rounded-2xl shadow-editorial-lg border border-outline-variant/20 w-[420px] max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 border-b border-outline-variant/15 flex items-center justify-between">
+          <span className="font-semibold text-on-surface">{title}</span>
+          <button onClick={onClose} className="p-1 hover:bg-surface-container rounded"><X className="w-4 h-4" /></button>
         </div>
-        <div className="px-4 py-3 border-b">
-          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
-            <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
+        <div className="px-4 py-3 border-b border-outline-variant/15">
+          <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2">
+            <Search className="w-4 h-4 text-on-surface-variant/60 flex-shrink-0" />
             <input value={keyword} onChange={(e) => setKeyword(e.target.value)}
               placeholder="Tìm theo tên hoặc mã sinh viên..."
               className="flex-1 bg-transparent text-sm focus:outline-none" autoFocus />
@@ -178,7 +178,7 @@ function UserPickerModal({
               const u = allUsers.find((x) => x.userId === uid);
               return (
                 <span key={uid} onClick={() => toggle(uid)}
-                  className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full cursor-pointer hover:bg-blue-200">
+                  className="flex items-center gap-1 bg-primary-100 text-primary-700 text-xs px-2 py-0.5 rounded-full cursor-pointer hover:bg-blue-200">
                   {u?.fullName || uid} <X className="w-3 h-3" />
                 </span>
               );
@@ -186,25 +186,25 @@ function UserPickerModal({
           </div>
         )}
         <div className="flex-1 overflow-y-auto py-1">
-          {filtered.length === 0 && <p className="text-center text-slate-400 text-sm py-6">Không tìm thấy</p>}
+          {filtered.length === 0 && <p className="text-center text-on-surface-variant/60 text-sm py-6">Không tìm thấy</p>}
           {filtered.map((u) => (
             <button key={u.userId} onClick={() => toggle(u.userId)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors ${selected.has(u.userId) ? "bg-blue-50" : ""}`}>
-              <div className={`w-5 h-5 rounded flex-shrink-0 border-2 transition-colors ${selected.has(u.userId) ? "bg-blue-600 border-blue-600" : "border-slate-300"} flex items-center justify-center`}>
+              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-low transition-colors ${selected.has(u.userId) ? "bg-primary-100" : ""}`}>
+              <div className={`w-5 h-5 rounded flex-shrink-0 border-2 transition-colors ${selected.has(u.userId) ? "bg-primary-800 border-primary-800" : "border-outline-variant/50"} flex items-center justify-center`}>
                 {selected.has(u.userId) && <span className="text-white text-xs font-bold">✓</span>}
               </div>
               <Avatar name={u.fullName} size="sm" />
               <div className="flex-1 text-left min-w-0">
-                <p className="text-sm font-medium text-slate-800 truncate">{u.fullName}</p>
-                <p className="text-xs text-slate-400 truncate">{u.studentId ? `${u.studentId} · ` : ""}{u.role}</p>
+                <p className="text-sm font-medium text-on-surface truncate">{u.fullName}</p>
+                <p className="text-xs text-on-surface-variant/60 truncate">{u.studentId ? `${u.studentId} · ` : ""}{u.role}</p>
               </div>
             </button>
           ))}
         </div>
         <div className="p-4 border-t flex gap-2">
-          <button onClick={onClose} className="flex-1 border rounded-xl py-2 text-sm text-slate-600 hover:bg-slate-50">Hủy</button>
+          <button onClick={onClose} className="flex-1 border rounded-2xl py-2 text-sm text-on-surface-variant hover:bg-surface-container-low">Hủy</button>
           <button onClick={handleConfirm} disabled={loading || selected.size === 0}
-            className="flex-1 bg-blue-600 text-white rounded-xl py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+            className="flex-1 bg-primary-800 text-white rounded-2xl py-2 text-sm font-medium hover:bg-primary-700 disabled:opacity-50">
             {loading ? "Đang xử lý..." : `${confirmLabel} (${selected.size})`}
           </button>
         </div>
@@ -244,21 +244,21 @@ function CreateGroupModal({ allUsers, currentUserId, onCreated, onClose }: {
 
   return (
     <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-96 p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-surface-container-lowest rounded-2xl shadow-editorial-lg border border-outline-variant/20 w-96 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <span className="font-semibold text-slate-800">Tạo nhóm chat</span>
-          <button onClick={onClose}><X className="w-4 h-4 text-slate-500" /></button>
+          <span className="font-semibold text-on-surface">Tạo nhóm chat</span>
+          <button onClick={onClose}><X className="w-4 h-4 text-on-surface-variant" /></button>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">Tên nhóm</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Tên nhóm</label>
             <input value={groupName} onChange={(e) => setGroupName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && groupName.trim() && setStep("pick")}
-              className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-800/30"
               placeholder="Nhập tên nhóm..." autoFocus />
           </div>
           <button onClick={() => { if (!groupName.trim()) { toast.error("Nhập tên nhóm"); return; } setStep("pick"); }}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2">
+            className="w-full bg-primary-800 text-white py-2.5 rounded-2xl text-sm font-medium hover:bg-primary-700 flex items-center justify-center gap-2">
             <Users className="w-4 h-4" /> Chọn thành viên
           </button>
         </div>
@@ -284,18 +284,18 @@ function RenameGroupModal({ current, onConfirm, onClose }: {
 
   return (
     <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-96 p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-surface-container-lowest rounded-2xl shadow-editorial-lg border border-outline-variant/20 w-96 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <span className="font-semibold text-slate-800">Đổi tên nhóm</span>
-          <button onClick={onClose}><X className="w-4 h-4 text-slate-500" /></button>
+          <span className="font-semibold text-on-surface">Đổi tên nhóm</span>
+          <button onClick={onClose}><X className="w-4 h-4 text-on-surface-variant" /></button>
         </div>
         <input value={name} onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4" autoFocus />
+          className="w-full border rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-800/30 mb-4" autoFocus />
         <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 border rounded-xl py-2 text-sm text-slate-600 hover:bg-slate-50">Hủy</button>
+          <button onClick={onClose} className="flex-1 border rounded-2xl py-2 text-sm text-on-surface-variant hover:bg-surface-container-low">Hủy</button>
           <button onClick={handleSubmit} disabled={loading || !name.trim()}
-            className="flex-1 bg-blue-600 text-white rounded-xl py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+            className="flex-1 bg-primary-800 text-white rounded-2xl py-2 text-sm font-medium hover:bg-primary-700 disabled:opacity-50">
             {loading ? "Đang lưu..." : "Lưu"}
           </button>
         </div>
@@ -504,27 +504,27 @@ export default function ChatView() {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen bg-slate-50 relative" onClick={() => setContextMenu(null)}>
+    <div className="flex h-screen bg-surface-container-low relative" onClick={() => setContextMenu(null)}>
 
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <aside className="w-72 bg-white border-r flex flex-col">
-        <div className="p-4 border-b">
+      <aside className="w-72 bg-surface-container-lowest border-r border-outline-variant/15 flex flex-col">
+        <div className="p-4 border-b border-outline-variant/15">
           <div className="flex items-center justify-between mb-3">
-            <span className="font-bold text-slate-800">Tin nhắn</span>
+            <span className="font-bold text-on-surface">Tin nhắn</span>
             {canCreateGroup && (
               <button onClick={() => setShowCreateGroup(true)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600" title="Tạo nhóm">
+                className="p-1.5 rounded-xl hover:bg-surface-container text-on-surface-variant" title="Tạo nhóm">
                 <Users className="w-4 h-4" />
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-1.5">
-            <Search className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+          <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-1.5">
+            <Search className="w-3.5 h-3.5 text-on-surface-variant/60 flex-shrink-0" />
             <input value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)}
               placeholder="Tìm cuộc trò chuyện..."
-              className="flex-1 bg-transparent text-xs focus:outline-none text-slate-700 placeholder:text-slate-400" />
+              className="flex-1 bg-transparent text-xs focus:outline-none text-on-surface placeholder:text-on-surface-variant/60" />
             {sidebarSearch && (
-              <button onClick={() => setSidebarSearch("")}><X className="w-3 h-3 text-slate-400" /></button>
+              <button onClick={() => setSidebarSearch("")}><X className="w-3 h-3 text-on-surface-variant/60" /></button>
             )}
           </div>
         </div>
@@ -544,7 +544,7 @@ export default function ChatView() {
 
           {/* Không có gì */}
           {filteredAll.length === 0 && suggestedDirectUsers.length === 0 && (
-            <p className="text-center text-slate-400 text-xs mt-8 px-4">
+            <p className="text-center text-on-surface-variant/60 text-xs mt-8 px-4">
               {sidebarSearch ? "Không tìm thấy" : "Chưa có cuộc trò chuyện"}
             </p>
           )}
@@ -553,15 +553,15 @@ export default function ChatView() {
           {suggestedDirectUsers.length > 0 && (
             <div>
               <div className="px-4 pt-3 pb-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bắt đầu chat</span>
+                <span className="text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">Bắt đầu chat</span>
               </div>
               {suggestedDirectUsers.map((u) => (
                 <button key={u.userId} onClick={() => handleOpenDirect(u.userId)}
-                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 border-b border-slate-50 text-slate-600">
+                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-surface-container-low border-b border-outline-variant/10 text-on-surface-variant">
                   <Avatar name={u.fullName} />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate text-sm">{u.fullName}</p>
-                    <p className="text-xs text-slate-400 truncate flex items-center gap-1">
+                    <p className="text-xs text-on-surface-variant/60 truncate flex items-center gap-1">
                       <MessageSquare className="w-3 h-3" /> Bắt đầu chat
                     </p>
                   </div>
@@ -574,12 +574,12 @@ export default function ChatView() {
 
       {/* ── Chat Area ─────────────────────────────────────────────────── */}
       {!activeConv ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-3">
-          <MessageSquare className="w-12 h-12 text-slate-300" />
+        <div className="flex-1 flex flex-col items-center justify-center text-on-surface-variant/60 gap-3">
+          <MessageSquare className="w-12 h-12 text-on-surface-variant/40" />
           <p>Chọn cuộc trò chuyện để bắt đầu</p>
           {canCreateGroup && (
             <button onClick={() => setShowCreateGroup(true)}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-xl px-4 py-2 hover:bg-blue-50">
+              className="flex items-center gap-2 text-sm text-primary-800 hover:text-primary-700 border border-primary-800/20 rounded-2xl px-4 py-2 hover:bg-primary-100">
               <Plus className="w-4 h-4" /> Tạo nhóm mới
             </button>
           )}
@@ -587,18 +587,18 @@ export default function ChatView() {
       ) : (
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
-          <div className="bg-white border-b px-4 py-3 flex items-center gap-3">
+          <div className="bg-surface-container-lowest border-b border-outline-variant/15 px-4 py-3 flex items-center gap-3">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm
               ${activeConv.type === "CLASS" ? "bg-emerald-100 text-emerald-700"
                 : activeConv.type === "GROUP" ? "bg-violet-100 text-violet-700"
-                : "bg-blue-100 text-blue-700"}`}>
+                : "bg-primary-100 text-primary-700"}`}>
               {activeConv.type !== "PRIVATE"
                 ? <ConvIcon conv={activeConv} />
                 : convDisplayName(activeConv).charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-slate-800 text-sm">{convDisplayName(activeConv)}</p>
-              <p className="text-xs text-slate-400">
+              <p className="font-semibold text-on-surface text-sm">{convDisplayName(activeConv)}</p>
+              <p className="text-xs text-on-surface-variant/60">
                 {activeConv.type === "CLASS" && "Nhóm lớp học · "}
                 {activeConv.type !== "PRIVATE" && `${activeConv.memberIds.length} thành viên`}
                 {activeConv.type === "PRIVATE" && "Chat cá nhân"}
@@ -609,11 +609,11 @@ export default function ChatView() {
             </div>
             <div className="flex items-center gap-1">
               <button onClick={() => setShowSearch(!showSearch)}
-                className="p-2 rounded-lg hover:bg-slate-100 text-slate-500" title="Tìm kiếm tin nhắn">
+                className="p-2 rounded-xl hover:bg-surface-container text-on-surface-variant" title="Tìm kiếm tin nhắn">
                 <Search className="w-4 h-4" />
               </button>
               <button onClick={handleShowPinnedModal}
-                className={`p-2 rounded-lg hover:bg-slate-100 text-slate-500 relative ${pinnedMessages.length > 0 ? "text-amber-500" : ""}`}
+                className={`p-2 rounded-xl hover:bg-surface-container text-on-surface-variant relative ${pinnedMessages.length > 0 ? "text-amber-500" : ""}`}
                 title="Tin nhắn đã ghim">
                 <Pin className="w-4 h-4" />
                 {pinnedMessages.length > 0 && (
@@ -623,7 +623,7 @@ export default function ChatView() {
                 )}
               </button>
               <button onClick={() => setShowInfo(!showInfo)}
-                className="p-2 rounded-lg hover:bg-slate-100 text-slate-500" title="Thông tin">
+                className="p-2 rounded-xl hover:bg-surface-container text-on-surface-variant" title="Thông tin">
                 <InfoIcon className="w-4 h-4" />
               </button>
             </div>
@@ -636,14 +636,14 @@ export default function ChatView() {
 
           {/* Message Search Bar */}
           {showSearch && (
-            <div className="bg-white border-b px-4 py-2 flex gap-2">
+            <div className="bg-surface-container-lowest border-b border-outline-variant/15 px-4 py-2 flex gap-2">
               <input value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="Tìm kiếm tin nhắn..."
-                className="flex-1 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-              <button onClick={handleSearch} className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm">Tìm</button>
+                className="flex-1 border rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-800/30" />
+              <button onClick={handleSearch} className="bg-primary-800 text-white px-3 py-1.5 rounded-xl text-sm">Tìm</button>
               <button onClick={() => { setShowSearch(false); setSearchResults([]); setSearchKeyword(""); }}
-                className="text-slate-500 hover:text-slate-700"><X className="w-4 h-4" /></button>
+                className="text-on-surface-variant hover:text-on-surface"><X className="w-4 h-4" /></button>
             </div>
           )}
 
@@ -651,8 +651,8 @@ export default function ChatView() {
             <div className="bg-yellow-50 border-b px-4 py-2 max-h-40 overflow-y-auto">
               <p className="text-xs font-medium text-yellow-700 mb-1">Kết quả ({searchResults.length})</p>
               {searchResults.map((m) => (
-                <div key={m.messageId} className="text-sm text-slate-700 py-1 border-b last:border-0">
-                  <span className="font-medium text-blue-700 mr-1">{m.senderName}:</span>
+                <div key={m.messageId} className="text-sm text-on-surface py-1 border-b last:border-0">
+                  <span className="font-medium text-primary-700 mr-1">{m.senderName}:</span>
                   {m.content}
                 </div>
               ))}
@@ -661,7 +661,7 @@ export default function ChatView() {
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-            {loading && <p className="text-center text-slate-400 text-sm">Đang tải...</p>}
+            {loading && <p className="text-center text-on-surface-variant/60 text-sm">Đang tải...</p>}
             {[...messages].reverse().map((msg) => {
               const isMe = msg.senderId === user?.userId;
               const hasActions = !msg.isDeleted && (canEditOrDelete(msg) || canPin);
@@ -670,11 +670,11 @@ export default function ChatView() {
                   <div className={`flex items-end gap-1 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
                     <div className="max-w-xs lg:max-w-md relative"
                       onContextMenu={(e) => { e.preventDefault(); if (!msg.isDeleted) setContextMenu({ x: e.clientX, y: e.clientY, msg }); }}>
-                      {!isMe && <p className="text-xs text-slate-500 mb-0.5 ml-1">{msg.senderName}</p>}
+                      {!isMe && <p className="text-xs text-on-surface-variant mb-0.5 ml-1">{msg.senderName}</p>}
                       <div className={`rounded-2xl px-3 py-2 text-sm
-                        ${msg.isDeleted ? "bg-slate-100 text-slate-400 italic"
-                          : isMe ? "bg-blue-600 text-white"
-                          : "bg-white text-slate-800 border"}`}>
+                        ${msg.isDeleted ? "bg-surface-container text-on-surface-variant/60 italic"
+                          : isMe ? "bg-primary-800 text-white"
+                          : "bg-surface-container-lowest text-on-surface border border-outline-variant/20"}`}>
                         {msg.type === "FILE" && !msg.isDeleted ? (
                           (() => {
                             const isImage = msg.fileName && /\.(jpe?g|png|gif|webp|bmp|svg)$/i.test(msg.fileName);
@@ -683,13 +683,13 @@ export default function ChatView() {
                                 <img
                                   src={msg.fileUrl}
                                   alt={msg.fileName || "Ảnh"}
-                                  className="max-w-[220px] max-h-[180px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                  className="max-w-[220px] max-h-[180px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
                                   onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
                                 />
                               </a>
                             ) : (
                               <a href={msg.fileUrl} target="_blank" rel="noreferrer"
-                                className={`flex items-center gap-1 underline ${isMe ? "text-blue-100" : "text-blue-600"}`}>
+                                className={`flex items-center gap-1 underline ${isMe ? "text-blue-100" : "text-primary-800"}`}>
                                 <Paperclip className="w-3 h-3" />
                                 {msg.fileName || "File đính kèm"}
                               </a>
@@ -698,7 +698,7 @@ export default function ChatView() {
                         ) : (
                           <span>{msg.isDeleted ? "Tin nhắn đã bị thu hồi" : msg.content}</span>
                         )}
-                        <div className={`flex items-center gap-1 mt-0.5 text-xs ${isMe ? "text-blue-200" : "text-slate-400"}`}>
+                        <div className={`flex items-center gap-1 mt-0.5 text-xs ${isMe ? "text-blue-200" : "text-on-surface-variant/60"}`}>
                           <span>{new Date(msg.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
                           {msg.isEdited && <span>· đã chỉnh sửa</span>}
                           {msg.isPinned && <Pin className="w-3 h-3 text-amber-400" />}
@@ -707,7 +707,7 @@ export default function ChatView() {
                     </div>
                     {hasActions && (
                       <button
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-slate-200 text-slate-500 mb-1 flex-shrink-0"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant mb-1 flex-shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -731,25 +731,25 @@ export default function ChatView() {
               <span className="text-xs text-yellow-700 font-medium">Chỉnh sửa:</span>
               <input value={editContent} onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitEdit()}
-                className="flex-1 border rounded px-2 py-1 text-sm focus:outline-none" autoFocus />
-              <button onClick={submitEdit} className="text-blue-600 text-sm font-medium">Lưu</button>
-              <button onClick={() => setEditingId(null)}><X className="w-4 h-4 text-slate-500" /></button>
+                className="flex-1 border border-outline-variant/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-800/20 bg-surface-container-lowest" autoFocus />
+              <button onClick={submitEdit} className="text-primary-800 text-sm font-medium">Lưu</button>
+              <button onClick={() => setEditingId(null)}><X className="w-4 h-4 text-on-surface-variant" /></button>
             </div>
           )}
 
           {/* Input Area */}
-          <div className="bg-white border-t px-4 py-3 flex items-center gap-2">
+          <div className="bg-surface-container-lowest border-t border-outline-variant/15 px-4 py-3 flex items-center gap-2">
             <input type="file" ref={fileRef} className="hidden" onChange={handleFile} />
             <button onClick={() => fileRef.current?.click()}
-              className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-lg">
+              className="p-2 text-on-surface-variant hover:text-primary-800 hover:bg-surface-container rounded-xl">
               <Paperclip className="w-4 h-4" />
             </button>
             <input value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
               placeholder="Nhập tin nhắn..."
-              className="flex-1 border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              className="flex-1 border rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-800/30" />
             <button onClick={handleSend} disabled={!input.trim()}
-              className="bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
+              className="bg-primary-800 text-white p-2 rounded-2xl hover:bg-primary-700 transition-colors disabled:opacity-50">
               <Send className="w-4 h-4" />
             </button>
           </div>
@@ -758,24 +758,24 @@ export default function ChatView() {
 
       {/* ── Info Panel ──────────────────────────────────────────────── */}
       {showInfo && activeConv && (
-        <aside className="w-72 bg-white border-l flex flex-col overflow-y-auto">
-          <div className="p-4 border-b flex items-center justify-between">
-            <span className="font-semibold text-slate-800">Thông tin</span>
-            <button onClick={() => setShowInfo(false)}><X className="w-4 h-4 text-slate-500" /></button>
+        <aside className="w-72 bg-surface-container-lowest border-l border-outline-variant/15 flex flex-col overflow-y-auto">
+          <div className="p-4 border-b border-outline-variant/15 flex items-center justify-between">
+            <span className="font-semibold text-on-surface">Thông tin</span>
+            <button onClick={() => setShowInfo(false)}><X className="w-4 h-4 text-on-surface-variant" /></button>
           </div>
           <div className="p-4 space-y-4">
             <div className="text-center py-2">
               <div className={`w-14 h-14 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-2
                 ${activeConv.type === "CLASS" ? "bg-emerald-100 text-emerald-700"
                   : activeConv.type === "GROUP" ? "bg-violet-100 text-violet-700"
-                  : "bg-blue-100 text-blue-700"}`}>
+                  : "bg-primary-100 text-primary-700"}`}>
                 {activeConv.type !== "PRIVATE"
                   ? <ConvIcon conv={activeConv} className="w-6 h-6" />
                   : convDisplayName(activeConv).charAt(0).toUpperCase()}
               </div>
-              <p className="font-semibold text-slate-800">{convDisplayName(activeConv)}</p>
+              <p className="font-semibold text-on-surface">{convDisplayName(activeConv)}</p>
               {activeConv.type !== "PRIVATE" && (
-                <p className="text-xs text-slate-400">{activeConv.memberIds.length} thành viên</p>
+                <p className="text-xs text-on-surface-variant/60">{activeConv.memberIds.length} thành viên</p>
               )}
               {activeConv.type === "CLASS" && (
                 <span className="inline-flex items-center gap-1 mt-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
@@ -784,7 +784,7 @@ export default function ChatView() {
               )}
               {activeConv.type === "GROUP" && isGroupAdmin && (
                 <button onClick={() => setShowRename(true)}
-                  className="mt-2 flex items-center gap-1 mx-auto text-xs text-blue-600 hover:text-blue-700">
+                  className="mt-2 flex items-center gap-1 mx-auto text-xs text-primary-800 hover:text-primary-700">
                   <PenLine className="w-3 h-3" /> Đổi tên nhóm
                 </button>
               )}
@@ -795,14 +795,14 @@ export default function ChatView() {
                 {/* Thêm thành viên — chỉ GROUP admin, không áp dụng cho CLASS */}
                 {isGroupAdmin && activeConv.type === "GROUP" && (
                   <button onClick={() => setShowAddMember(true)}
-                    className="w-full flex items-center justify-center gap-2 border border-blue-200 text-blue-600 text-sm py-2 rounded-xl hover:bg-blue-50">
+                    className="w-full flex items-center justify-center gap-2 border border-primary-800/20 text-primary-800 text-sm py-2 rounded-2xl hover:bg-primary-100">
                     <UserPlus className="w-4 h-4" /> Thêm thành viên
                   </button>
                 )}
 
                 {/* Members list */}
                 <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-2">
                     Thành viên ({activeConv.memberIds.length})
                   </p>
                   <div className="space-y-1">
@@ -814,13 +814,13 @@ export default function ChatView() {
                         <div key={uid} className="flex items-center gap-2 py-1.5 group">
                           <Avatar name={memberName} size="sm" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-800 truncate">{memberName}</p>
+                            <p className="text-sm font-medium text-on-surface truncate">{memberName}</p>
                             {isCreator ? (
                               <span className="text-xs text-amber-600 font-medium">
                                 {activeConv.type === "CLASS" ? "Giáo viên phụ trách" : "Người tạo"}
                               </span>
                             ) : isUidAdmin ? (
-                              <span className="text-xs text-blue-600 font-medium">Admin nhóm</span>
+                              <span className="text-xs text-primary-800 font-medium">Admin nhóm</span>
                             ) : null}
                           </div>
                           {/* Quản lý thành viên — chỉ GROUP admin, không áp dụng CLASS */}
@@ -828,7 +828,7 @@ export default function ChatView() {
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               {!isUidAdmin ? (
                                 <button onClick={() => handlePromote(uid)} title="Nâng quyền admin nhóm"
-                                  className="p-1 rounded hover:bg-blue-50 text-blue-500">
+                                  className="p-1 rounded hover:bg-primary-100 text-blue-500">
                                   <Shield className="w-3.5 h-3.5" />
                                 </button>
                               ) : !isCreator ? (
@@ -855,12 +855,12 @@ export default function ChatView() {
                 {activeConv.type === "GROUP" && (
                   <div className="pt-2 space-y-1 border-t">
                     <button onClick={handleLeave}
-                      className="flex items-center gap-2 w-full text-sm text-orange-600 hover:bg-orange-50 px-2 py-2 rounded-lg">
+                      className="flex items-center gap-2 w-full text-sm text-orange-600 hover:bg-orange-50 px-2 py-2 rounded-xl">
                       <LogOut className="w-4 h-4" /> Rời nhóm
                     </button>
                     {isGroupAdmin && (
                       <button onClick={handleDeleteGroup}
-                        className="flex items-center gap-2 w-full text-sm text-red-600 hover:bg-red-50 px-2 py-2 rounded-lg">
+                        className="flex items-center gap-2 w-full text-sm text-red-600 hover:bg-red-50 px-2 py-2 rounded-xl">
                         <Trash2 className="w-4 h-4" /> Xoá nhóm
                       </button>
                     )}
@@ -875,25 +875,25 @@ export default function ChatView() {
       {/* ── Pinned Messages Modal ─────────────────────────────────────── */}
       {showPinned && (
         <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-30">
-          <div className="bg-white rounded-xl shadow-xl w-96 max-h-[60vh] flex flex-col">
-            <div className="p-4 border-b flex items-center justify-between">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-editorial-lg border border-outline-variant/20 w-96 max-h-[60vh] flex flex-col">
+            <div className="p-4 border-b border-outline-variant/15 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Pin className="w-4 h-4 text-amber-500" />
                 <span className="font-semibold">Tin nhắn đã ghim ({pinnedMessages.length})</span>
               </div>
-              <button onClick={() => setShowPinned(false)}><X className="w-4 h-4 text-slate-500" /></button>
+              <button onClick={() => setShowPinned(false)}><X className="w-4 h-4 text-on-surface-variant" /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {pinnedMessages.length === 0 && (
-                <p className="text-slate-400 text-sm text-center py-4">Chưa có tin nhắn ghim</p>
+                <p className="text-on-surface-variant/60 text-sm text-center py-4">Chưa có tin nhắn ghim</p>
               )}
               {pinnedMessages.map((m) => (
-                <div key={m.messageId} className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm flex items-start gap-2">
+                <div key={m.messageId} className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm flex items-start gap-2">
                   <Pin className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="font-medium text-blue-700 block mb-0.5">{m.senderName}</span>
-                    <span className="text-slate-700">{m.content}</span>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <span className="font-medium text-primary-700 block mb-0.5">{m.senderName}</span>
+                    <span className="text-on-surface">{m.content}</span>
+                    <p className="text-xs text-on-surface-variant/60 mt-1">
                       {new Date(m.createdAt).toLocaleString("vi-VN")}
                     </p>
                   </div>
@@ -939,13 +939,13 @@ export default function ChatView() {
 
       {/* ── Context Menu ────────────────────────────────────────────── */}
       {contextMenu && (
-        <div className="fixed z-50 bg-white border rounded-lg shadow-lg py-1 min-w-36"
+        <div className="fixed z-50 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-editorial-lg py-1 min-w-36"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}>
           {/* Chỉnh sửa: người gửi HOẶC admin nhóm */}
           {canEditOrDelete(contextMenu.msg) && !contextMenu.msg.isDeleted && (
             <button onClick={() => handleEdit(contextMenu.msg)}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-on-surface hover:bg-surface-container">
               <Pencil className="w-3.5 h-3.5" /> Chỉnh sửa
             </button>
           )}
@@ -961,14 +961,14 @@ export default function ChatView() {
             const freshMsg = messages.find((m) => m.messageId === contextMenu.msg.messageId) ?? contextMenu.msg;
             return (
               <button onClick={() => handlePin(freshMsg)}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-on-surface hover:bg-surface-container">
                 <Pin className="w-3.5 h-3.5 text-amber-500" />
                 {freshMsg.isPinned ? "Bỏ ghim" : "Ghim tin nhắn"}
               </button>
             );
           })()}
           {!canEditOrDelete(contextMenu.msg) && !canPin && (
-            <p className="px-3 py-2 text-xs text-slate-400">Không có thao tác</p>
+            <p className="px-3 py-2 text-xs text-on-surface-variant/60">Không có thao tác</p>
           )}
         </div>
       )}
