@@ -1,81 +1,83 @@
-# docker-compose.yml — nhánh back-end của diem-danh
-version: '3.8'
+version: "3.8"
 name: diem-danh
 
 services:
-  neo4j:
-    image: neo4j:5
-    container_name: diem-danh-neo4j
+  diemdanh-neo4j:
+    image: neo4j:5.20-community
+    container_name: dd-neo4j
     environment:
-      NEO4J_AUTH: neo4j/password
-    volumes:
-      - neo4j_dd_data:/data
-    networks:
-      - diem-danh-net
+      NEO4J_AUTH: neo4j/DiemDanh@2024
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+    volumes: [neo4j_dd_data:/data, neo4j_dd_logs:/logs]
+    networks: [dd-net]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:7474 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   redis-dd:
     image: redis:7.2-alpine
-    container_name: diem-danh-redis
-    command: redis-server --requirepass admin
-    networks:
-      - diem-danh-net
+    container_name: dd-redis
+    volumes: [redis_dd_data:/data]
+    networks: [dd-net]
     restart: unless-stopped
 
   rabbitmq-dd:
     image: rabbitmq:3.13-management-alpine
-    container_name: diem-danh-rabbitmq
-    networks:
-      - diem-danh-net
+    container_name: dd-rabbitmq
+    volumes: [rabbitmq_dd_data:/var/lib/rabbitmq]
+    networks: [dd-net]
     restart: unless-stopped
 
   minio-dd:
     image: minio/minio:latest
-    container_name: diem-danh-minio
+    container_name: dd-minio
     command: server /data --console-address ":9004"
     environment:
       MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    volumes:
-      - minio_dd_data:/data
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes: [minio_dd_data:/data]
     ports:
       - "9003:9000"
-      - "9004:9004"
-    networks:
-      - diem-danh-net
+    networks: [dd-net]
     restart: unless-stopped
 
   backend:
     image: ghcr.io/truong-backend/diem-danh-backend:latest
-    container_name: diem-danh-backend
-    env_file:
-      - /opt/diem-danh/.env
+    container_name: dd-backend
+    env_file: [/opt/diem-danh/.env]
     ports:
-      - "8080:8080"
+      - "8082:8082"
     depends_on:
-      - neo4j
-      - redis-dd
-      - rabbitmq-dd
-      - minio-dd
-    networks:
-      - diem-danh-net
+      diemdanh-neo4j:
+        condition: service_healthy
+      redis-dd:
+        condition: service_started
+      rabbitmq-dd:
+        condition: service_started
+    networks: [dd-net]
     restart: unless-stopped
 
   frontend:
     image: ghcr.io/truong-backend/diem-danh-frontend:latest
-    container_name: diem-danh-frontend
+    container_name: dd-frontend
     ports:
-      - "8082:80"
-    depends_on:
-      - backend
-    networks:
-      - diem-danh-net
+      - "8091:80"
+    depends_on: [backend]
+    networks: [dd-net]
     restart: unless-stopped
 
 networks:
-  diem-danh-net:
+  dd-net:
     driver: bridge
 
 volumes:
   neo4j_dd_data:
+  neo4j_dd_logs:
+  redis_dd_data:
+  rabbitmq_dd_data:
   minio_dd_data:
