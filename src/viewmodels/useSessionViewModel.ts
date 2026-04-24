@@ -101,8 +101,17 @@ export function useQrViewModel(sessionId: string) {
     if (!sessionId) return
     try {
       const data = await sessionService.getQr(sessionId)
-      if (data?.qrImageBase64) { setQrData(data); if (data.expiresAt) startCountdown(data.expiresAt) }
-    } catch { }
+      if (data?.qrImageBase64 && data.expiresInSeconds > 0) {
+        setQrData(data)
+        if (data.expiresAt) startCountdown(data.expiresAt)
+      } else {
+        // QR hết hạn hoặc không hợp lệ → tự tạo mới
+        await generateQr()
+      }
+    } catch {
+      // Không có QR hợp lệ → tự tạo mới ngay
+      await generateQr()
+    }
   }
 
   return { qrData, loading, countdown, generateQr, loadExistingQr }

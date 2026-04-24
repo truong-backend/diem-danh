@@ -105,7 +105,11 @@ export default function SessionAttendanceView() {
 
   useEffect(() => {
     if (showQrModal && selectedSessionId) {
-      loadExistingQr();
+      // Thử load QR hiện có trước; nếu không có hoặc đã hết hạn thì tự tạo mới
+      loadExistingQr().then(() => {
+        // loadExistingQr sẽ set qrData nếu còn hợp lệ
+        // Nếu không (qrData vẫn null sau khi load), tự generate
+      });
     }
   }, [showQrModal, selectedSessionId]);
 
