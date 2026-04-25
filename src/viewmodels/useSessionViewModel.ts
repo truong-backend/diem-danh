@@ -94,23 +94,33 @@ export function useQrViewModel(sessionId: string) {
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Tạo QR thất bại')
     } finally {
-      setLoading(false) }
+      setLoading(false)
+    }
   }
 
+  /**
+   * Mở modal QR: thử load QR hiện tại từ BE.
+   * - Nếu BE trả về QR còn hợp lệ (expiresInSeconds > 0) → hiển thị và chạy đồng hồ
+   * - Mọi trường hợp còn lại (không có QR, hết hạn, lỗi) → tự động tạo QR mới ngay
+   */
   const loadExistingQr = async () => {
     if (!sessionId) return
+    setLoading(true)
     try {
       const data = await sessionService.getQr(sessionId)
       if (data?.qrImageBase64 && data.expiresInSeconds > 0) {
         setQrData(data)
         if (data.expiresAt) startCountdown(data.expiresAt)
-      } else {
-        // QR hết hạn hoặc không hợp lệ → tự tạo mới
-        await generateQr()
+        setLoading(false)
+        return
       }
-    } catch {
-      // Không có QR hợp lệ → tự tạo mới ngay
+      // QR hết hạn → tạo mới
       await generateQr()
+    } catch {
+      // Không có QR hợp lệ → tạo mới ngay
+      await generateQr()
+    } finally {
+      setLoading(false)
     }
   }
 

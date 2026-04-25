@@ -33,7 +33,19 @@ export function useClassRoomViewModel() {
     }
   }
 
-  return { classes, loading, createClass, reload: load }
+  const deleteClass = async (classId: string) => {
+    try {
+      await classroomService.delete(classId)
+      toast.success('Đã xoá lớp học')
+      await load()
+      return true
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Xoá lớp thất bại')
+      return false
+    }
+  }
+
+  return { classes, loading, createClass, deleteClass, reload: load }
 }
 
 export function useClassDetailViewModel(classId: string) {

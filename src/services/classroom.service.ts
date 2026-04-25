@@ -19,6 +19,10 @@ export const classroomService = {
     return res.data.data
   },
 
+  async delete(classId: string): Promise<void> {
+    await api.delete(`/classrooms/${classId}`)
+  },
+
   async getStudents(classId: string): Promise<User[]> {
     const res = await api.get<ApiResponse<User[]>>(`/classrooms/${classId}/students`)
     return res.data.data

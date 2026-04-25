@@ -3,7 +3,7 @@ import { courseService } from '../services/course.service'
 import type { Course } from '../models/classroom.model'
 import { Modal } from '../components/ui/Modal'
 import { TableSkeleton } from '../components/ui/Skeleton'
-import { Plus, Pencil, BookMarked } from 'lucide-react'
+import { Plus, Pencil, Trash2, BookMarked } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
@@ -63,7 +63,12 @@ export default function CourseView() {
     if (!editTarget) return
     setEditSaving(true)
     try {
-      await courseService.update(editTarget.courseId, editForm)
+      // Chỉ gửi name, credits, description — KHÔNG gửi code
+      await courseService.update(editTarget.courseId, {
+        name: editForm.name,
+        credits: editForm.credits,
+        description: editForm.description,
+      })
       toast.success('Cập nhật môn học thành công')
       setShowEdit(false)
       await load()
@@ -71,6 +76,17 @@ export default function CourseView() {
       toast.error(err.response?.data?.message || 'Cập nhật thất bại')
     } finally {
       setEditSaving(false)
+    }
+  }
+
+  const handleDelete = async (c: Course) => {
+    if (!confirm(`Xoá môn học "${c.name}" (${c.code})?\nHành động này không thể hoàn tác.`)) return
+    try {
+      await courseService.delete(c.courseId)
+      toast.success('Đã xoá môn học')
+      await load()
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Xoá môn học thất bại')
     }
   }
 
@@ -99,7 +115,7 @@ export default function CourseView() {
                   <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tên môn học</th>
                   <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Số tín chỉ</th>
                   <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Mô tả</th>
-                  {isAdmin && <th className="px-5 py-3" />}
+                  {isAdmin && <th className="px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant text-right">Thao tác</th>}
                 </tr>
               </thead>
               <tbody>
@@ -118,13 +134,22 @@ export default function CourseView() {
                     <td className="px-5 py-3 text-on-surface-variant/60 max-w-xs truncate">{c.description || '—'}</td>
                     {isAdmin && (
                       <td className="px-5 py-3">
-                        <button
-                          className="p-1.5 text-blue-400 hover:text-primary-800 hover:bg-primary-100 rounded"
-                          title="Sửa môn học"
-                          onClick={() => openEdit(c)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            className="p-1.5 text-blue-400 hover:text-primary-800 hover:bg-primary-100 rounded"
+                            title="Sửa môn học"
+                            onClick={() => openEdit(c)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
+                            title="Xoá môn học"
+                            onClick={() => handleDelete(c)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -171,10 +196,11 @@ export default function CourseView() {
             />
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Mô tả <span className="text-on-surface-variant/60 font-normal">(tuỳ chọn)</span></label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
+              Mô tả <span className="text-on-surface-variant/60 font-normal">(tuỳ chọn)</span>
+            </label>
             <textarea
-              className="input resize-none" rows={3}
-              placeholder="Mô tả ngắn về môn học..."
+              className="input resize-none" rows={3} placeholder="Mô tả ngắn về môn học..."
               value={createForm.description}
               onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))}
             />
@@ -195,7 +221,12 @@ export default function CourseView() {
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
               Mã môn <span className="text-on-surface-variant/60 font-normal">(không thể đổi)</span>
             </label>
-            <input type="text" className="input bg-surface-container-low text-on-surface-variant/60" value={editTarget?.code || ''} disabled />
+            <input
+              type="text"
+              className="input bg-surface-container-low text-on-surface-variant/60 cursor-not-allowed"
+              value={editTarget?.code || ''}
+              disabled
+            />
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Tên môn học</label>
