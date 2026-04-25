@@ -40,6 +40,14 @@ public class ClassRoomController {
         return ResponseEntity.ok(ApiResponse.success(classRoomService.getClassRoom(id)));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ClassRoomResponse>> update(
+            @PathVariable String id,
+            @Valid @RequestBody CreateClassRoomRequest req) {
+        return ResponseEntity.ok(ApiResponse.success(classRoomService.updateClassRoom(id, req)));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
@@ -55,16 +63,16 @@ public class ClassRoomController {
 
     @PostMapping("/{id}/enroll")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<ApiResponse<Void>> enroll(@PathVariable String id,
-                                                    @RequestBody Map<String, String> body) {
+    public ResponseEntity<ApiResponse<Void>> enroll(
+            @PathVariable String id, @RequestBody Map<String, String> body) {
         classRoomService.enrollStudent(id, body.get("studentId"));
         return ResponseEntity.ok(ApiResponse.success("Đã thêm sinh viên vào lớp", null));
     }
 
     @DeleteMapping("/{id}/enroll/{uid}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<ApiResponse<Void>> unenroll(@PathVariable String id,
-                                                      @PathVariable String uid) {
+    public ResponseEntity<ApiResponse<Void>> unenroll(
+            @PathVariable String id, @PathVariable String uid) {
         classRoomService.unenrollStudent(id, uid);
         return ResponseEntity.ok(ApiResponse.success("Đã xoá sinh viên khỏi lớp", null));
     }

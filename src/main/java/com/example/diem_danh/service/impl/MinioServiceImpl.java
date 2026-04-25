@@ -21,8 +21,14 @@ public class MinioServiceImpl implements MinioService {
     @Value("${minio.bucket}")
     private String bucket;
 
+    // URL nội bộ để MinioClient kết nối upload
     @Value("${minio.endpoint}")
     private String endpoint;
+
+    // URL public để browser có thể truy cập file (đặt trong env MINIO_PUBLIC_URL)
+    // Nếu không có → fallback về endpoint
+    @Value("${app.minio.public-url:${minio.endpoint}}")
+    private String publicUrl;
 
     @Override
     public String uploadFile(String folder, MultipartFile file) throws Exception {
@@ -44,8 +50,10 @@ public class MinioServiceImpl implements MinioService {
                         .build()
         );
 
-        // Trả về URL trực tiếp (bucket phải public) hoặc presigned URL
-        return endpoint + "/" + bucket + "/" + objectName;
+        // Dùng publicUrl thay vì endpoint — để browser có thể load ảnh trực tiếp
+        String url = publicUrl.replaceAll("/$", "") + "/" + bucket + "/" + objectName;
+        log.info("File uploaded: {} → {}", objectName, url);
+        return url;
     }
 
     @Override
@@ -58,33 +66,12 @@ public class MinioServiceImpl implements MinioService {
         );
     }
 
-    /**
-     * Tự động tạo bucket nếu chưa tồn tại và set public read policy.
-     */
     private void ensureBucketExists() throws Exception {
         boolean exists = minioClient.bucketExists(
-                BucketExistsArgs.builder().bucket(bucket).build()
-        );
+                BucketExistsArgs.builder().bucket(bucket).build());
         if (!exists) {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
-            // Set bucket policy public-read để có thể truy cập file qua URL
-            String policy = """
-                    {
-                        "Version": "2012-10-17",
-                        "Statement": [
-                            {
-                                "Effect": "Allow",
-                                "Principal": {"AWS": ["*"]},
-                                "Action": ["s3:GetObject"],
-                                "Resource": ["arn:aws:s3:::%s/*"]
-                            }
-                        ]
-                    }
-                    """.formatted(bucket);
-            minioClient.setBucketPolicy(
-                    SetBucketPolicyArgs.builder().bucket(bucket).config(policy).build()
-            );
-            log.info("Đã tạo bucket MinIO: {} với policy public-read", bucket);
+            log.info("Created MinIO bucket: {}", bucket);
         }
     }
 }

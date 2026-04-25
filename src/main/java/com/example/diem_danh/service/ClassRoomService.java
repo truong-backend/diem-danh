@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ClassRoomService {
     ClassRoomResponse createClassRoom(CreateClassRoomRequest req);
+    ClassRoomResponse updateClassRoom(String classId, CreateClassRoomRequest req);
     ClassRoomResponse getClassRoom(String classId);
     List<ClassRoomResponse> getAllClassRooms(String userRole, String userId);
     void enrollStudent(String classId, String studentId);

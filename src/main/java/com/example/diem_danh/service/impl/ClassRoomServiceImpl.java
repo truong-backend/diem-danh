@@ -33,7 +33,6 @@ public class ClassRoomServiceImpl implements ClassRoomService {
     public ClassRoomResponse createClassRoom(CreateClassRoomRequest req) {
         CourseNode course = courseRepository.findByCourseId(req.getCourseId())
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy môn học"));
-
         UserNode teacher = userRepository.findByUserId(req.getTeacherId())
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy giáo viên"));
 
@@ -52,16 +51,42 @@ public class ClassRoomServiceImpl implements ClassRoomService {
 
         try {
             chatService.createClassConversation(
-                    saved.getClassId(),
-                    saved.getName(),
-                    teacher.getUserId(),
-                    List.of()
-            );
+                    saved.getClassId(), saved.getName(),
+                    teacher.getUserId(), List.of());
         } catch (Exception e) {
             log.warn("Không thể tạo CLASS conversation cho lớp {}: {}", saved.getClassId(), e.getMessage());
         }
 
         return toResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public ClassRoomResponse updateClassRoom(String classId, CreateClassRoomRequest req) {
+        ClassRoomNode cr = findClass(classId);
+
+        // Cập nhật các trường cơ bản
+        cr.setName(req.getName());
+        cr.setSemester(req.getSemester());
+        cr.setAcademicYear(req.getAcademicYear());
+        cr.setMaxStudents(req.getMaxStudents());
+        cr.setSchedule(req.getSchedule());
+
+        // Cập nhật môn học nếu thay đổi
+        if (req.getCourseId() != null && !req.getCourseId().isBlank()) {
+            CourseNode course = courseRepository.findByCourseId(req.getCourseId())
+                    .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy môn học"));
+            cr.setCourse(course);
+        }
+
+        // Cập nhật giáo viên nếu thay đổi
+        if (req.getTeacherId() != null && !req.getTeacherId().isBlank()) {
+            UserNode teacher = userRepository.findByUserId(req.getTeacherId())
+                    .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy giáo viên"));
+            cr.setTeacher(teacher);
+        }
+
+        return toResponse(classRoomRepository.save(cr));
     }
 
     @Override
@@ -89,12 +114,10 @@ public class ClassRoomServiceImpl implements ClassRoomService {
         userRepository.findByUserId(studentId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy sinh viên"));
         classRoomRepository.enrollStudent(classId, studentId);
-
         try {
             chatService.addMemberToClassConversation(classId, studentId);
         } catch (Exception e) {
-            log.warn("Không thể thêm sinh viên {} vào CLASS conversation của lớp {}: {}",
-                    studentId, classId, e.getMessage());
+            log.warn("Không thể thêm SV {} vào conversation lớp {}: {}", studentId, classId, e.getMessage());
         }
     }
 
@@ -107,8 +130,7 @@ public class ClassRoomServiceImpl implements ClassRoomService {
     @Override
     public List<UserResponse> getStudents(String classId) {
         ClassRoomNode cr = findClass(classId);
-        return cr.getStudents()
-                .stream().map(userService::toResponse).collect(Collectors.toList());
+        return cr.getStudents().stream().map(userService::toResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -133,7 +155,6 @@ public class ClassRoomServiceImpl implements ClassRoomService {
                     .credits(cr.getCourse().getCredits())
                     .build();
         }
-
         ClassRoomResponse.TeacherInfo teacherInfo = null;
         if (cr.getTeacher() != null) {
             teacherInfo = ClassRoomResponse.TeacherInfo.builder()
@@ -142,9 +163,7 @@ public class ClassRoomServiceImpl implements ClassRoomService {
                     .email(cr.getTeacher().getEmail())
                     .build();
         }
-
         Long studentCount = classRoomRepository.countStudentsInClass(cr.getClassId());
-
         return ClassRoomResponse.builder()
                 .id(cr.getId())
                 .classId(cr.getClassId())
