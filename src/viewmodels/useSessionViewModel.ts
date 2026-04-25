@@ -66,15 +66,22 @@ export function useQrViewModel(sessionId: string) {
   const [loading, setLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Lưu deadline tuyệt đối (ms) để countdown không bị lệch timezone
+  const deadlineRef = useRef<number>(0)
 
   const clearTimer = () => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
   }
 
-  const startCountdown = (expiresAt: string) => {
+  /**
+   * Nhận expiresInSeconds từ BE (luôn chính xác, không phụ thuộc timezone).
+   * Tính deadline = now + seconds, rồi đếm ngược từ đó.
+   */
+  const startCountdownFromSeconds = (seconds: number) => {
     clearTimer()
+    deadlineRef.current = Date.now() + seconds * 1000
     const tick = () => {
-      const remaining = Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000))
+      const remaining = Math.max(0, Math.floor((deadlineRef.current - Date.now()) / 1000))
       setCountdown(remaining)
       if (remaining === 0) clearTimer()
     }
@@ -90,7 +97,10 @@ export function useQrViewModel(sessionId: string) {
     try {
       const data = await sessionService.generateQr(sessionId)
       setQrData(data)
-      if (data.expiresAt) startCountdown(data.expiresAt)
+      // Dùng expiresInSeconds (BE trả về chính xác, không bị lệch timezone)
+      if (data.expiresInSeconds && data.expiresInSeconds > 0) {
+        startCountdownFromSeconds(data.expiresInSeconds)
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Tạo QR thất bại')
     } finally {
@@ -99,22 +109,22 @@ export function useQrViewModel(sessionId: string) {
   }
 
   /**
-   * Mở modal QR: thử load QR hiện tại từ BE.
-   * - Nếu BE trả về QR còn hợp lệ (expiresInSeconds > 0) → hiển thị và chạy đồng hồ
-   * - Mọi trường hợp còn lại (không có QR, hết hạn, lỗi) → tự động tạo QR mới ngay
+   * Mở modal: thử load QR đang active.
+   * Nếu còn hợp lệ → hiển thị và chạy đồng hồ.
+   * Nếu hết hạn / không có → tự động tạo mới.
    */
   const loadExistingQr = async () => {
     if (!sessionId) return
     setLoading(true)
     try {
       const data = await sessionService.getQr(sessionId)
-      if (data?.qrImageBase64 && data.expiresInSeconds > 0) {
+      if (data?.qrImageBase64 && data.expiresInSeconds != null && data.expiresInSeconds > 0) {
         setQrData(data)
-        if (data.expiresAt) startCountdown(data.expiresAt)
+        startCountdownFromSeconds(data.expiresInSeconds)
         setLoading(false)
         return
       }
-      // QR hết hạn → tạo mới
+      // QR hết hạn hoặc không hợp lệ → tạo mới
       await generateQr()
     } catch {
       // Không có QR hợp lệ → tạo mới ngay

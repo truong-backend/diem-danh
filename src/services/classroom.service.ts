@@ -14,6 +14,11 @@ export const classroomService = {
     return res.data.data
   },
 
+  async update(classId: string, data: CreateClassRoomPayload): Promise<ClassRoom> {
+    const res = await api.put<ApiResponse<ClassRoom>>(`/classrooms/${classId}`, data)
+    return res.data.data
+  },
+
   async getOne(classId: string): Promise<ClassRoom> {
     const res = await api.get<ApiResponse<ClassRoom>>(`/classrooms/${classId}`)
     return res.data.data

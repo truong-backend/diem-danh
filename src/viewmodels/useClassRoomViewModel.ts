@@ -33,6 +33,18 @@ export function useClassRoomViewModel() {
     }
   }
 
+  const updateClass = async (classId: string, data: CreateClassRoomPayload) => {
+    try {
+      await classroomService.update(classId, data)
+      toast.success('Cập nhật lớp học thành công')
+      await load()
+      return true
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Cập nhật lớp thất bại')
+      return false
+    }
+  }
+
   const deleteClass = async (classId: string) => {
     try {
       await classroomService.delete(classId)
@@ -45,7 +57,7 @@ export function useClassRoomViewModel() {
     }
   }
 
-  return { classes, loading, createClass, deleteClass, reload: load }
+  return { classes, loading, createClass, updateClass, deleteClass, reload: load }
 }
 
 export function useClassDetailViewModel(classId: string) {
@@ -70,9 +82,7 @@ export function useClassDetailViewModel(classId: string) {
     }
   }
 
-  useEffect(() => {
-    if (classId) load()
-  }, [classId])
+  useEffect(() => { if (classId) load() }, [classId])
 
   const enroll = async (studentId: string) => {
     try {
