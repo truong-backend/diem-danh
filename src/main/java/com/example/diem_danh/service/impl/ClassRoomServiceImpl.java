@@ -63,23 +63,22 @@ public class ClassRoomServiceImpl implements ClassRoomService {
     @Override
     @Transactional
     public ClassRoomResponse updateClassRoom(String classId, CreateClassRoomRequest req) {
-        ClassRoomNode cr = findClass(classId);
+        // Dùng query với đầy đủ relationships để tránh mất dữ liệu khi save
+        ClassRoomNode cr = classRoomRepository.findByClassIdWithDetails(classId)
+                .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));
 
-        // Cập nhật các trường cơ bản
         cr.setName(req.getName());
         cr.setSemester(req.getSemester());
         cr.setAcademicYear(req.getAcademicYear());
         cr.setMaxStudents(req.getMaxStudents());
         cr.setSchedule(req.getSchedule());
 
-        // Cập nhật môn học nếu thay đổi
         if (req.getCourseId() != null && !req.getCourseId().isBlank()) {
             CourseNode course = courseRepository.findByCourseId(req.getCourseId())
                     .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy môn học"));
             cr.setCourse(course);
         }
 
-        // Cập nhật giáo viên nếu thay đổi
         if (req.getTeacherId() != null && !req.getTeacherId().isBlank()) {
             UserNode teacher = userRepository.findByUserId(req.getTeacherId())
                     .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy giáo viên"));
@@ -91,7 +90,9 @@ public class ClassRoomServiceImpl implements ClassRoomService {
 
     @Override
     public ClassRoomResponse getClassRoom(String classId) {
-        return toResponse(findClass(classId));
+        ClassRoomNode cr = classRoomRepository.findByClassIdWithDetails(classId)
+                .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));
+        return toResponse(cr);
     }
 
     @Override
@@ -110,7 +111,8 @@ public class ClassRoomServiceImpl implements ClassRoomService {
     @Override
     @Transactional
     public void enrollStudent(String classId, String studentId) {
-        findClass(classId);
+        classRoomRepository.findByClassId(classId)
+                .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học"));
         userRepository.findByUserId(studentId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy sinh viên"));
         classRoomRepository.enrollStudent(classId, studentId);
@@ -129,20 +131,17 @@ public class ClassRoomServiceImpl implements ClassRoomService {
 
     @Override
     public List<UserResponse> getStudents(String classId) {
-        ClassRoomNode cr = findClass(classId);
+        ClassRoomNode cr = classRoomRepository.findByClassIdWithDetails(classId)
+                .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học"));
         return cr.getStudents().stream().map(userService::toResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public void deleteClassRoom(String classId) {
-        ClassRoomNode cr = findClass(classId);
-        classRoomRepository.delete(cr);
-    }
-
-    private ClassRoomNode findClass(String classId) {
-        return classRoomRepository.findByClassId(classId)
+        ClassRoomNode cr = classRoomRepository.findByClassId(classId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));
+        classRoomRepository.delete(cr);
     }
 
     public ClassRoomResponse toResponse(ClassRoomNode cr) {

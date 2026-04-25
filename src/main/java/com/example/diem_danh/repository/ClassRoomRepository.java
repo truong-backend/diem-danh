@@ -1,7 +1,6 @@
 package com.example.diem_danh.repository;
 
 import com.example.diem_danh.model.node.ClassRoomNode;
-import com.example.diem_danh.model.node.UserNode;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
@@ -12,11 +11,23 @@ import java.util.Optional;
 @Repository
 public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long> {
 
+    // Spring Data tự động — KHÔNG eager-load relationships, chỉ dùng khi cần properties đơn giản
     Optional<ClassRoomNode> findByClassId(String classId);
 
+    // Custom query — LUÔN load đầy đủ course + teacher, dùng cho update/detail
     @Query("""
-        MATCH (cr:ClassRoom)-[:BELONGS_TO]->(c:Course)
-        MATCH (t:User)-[:TEACHES]->(cr)
+        MATCH (cr:ClassRoom {classId: $classId})
+        OPTIONAL MATCH (cr)-[:BELONGS_TO]->(c:Course)
+        OPTIONAL MATCH (t:User)-[:TEACHES]->(cr)
+        OPTIONAL MATCH (s:User)-[:ENROLLED_IN]->(cr)
+        RETURN cr, collect(c) as course, collect(t) as teacher, collect(s) as students
+        """)
+    Optional<ClassRoomNode> findByClassIdWithDetails(String classId);
+
+    @Query("""
+        MATCH (cr:ClassRoom)
+        OPTIONAL MATCH (cr)-[:BELONGS_TO]->(c:Course)
+        OPTIONAL MATCH (t:User)-[:TEACHES]->(cr)
         RETURN cr, c, t
         ORDER BY cr.academicYear DESC, cr.semester DESC
         """)
@@ -24,7 +35,7 @@ public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long
 
     @Query("""
         MATCH (t:User {userId: $teacherId})-[:TEACHES]->(cr:ClassRoom)
-        MATCH (cr)-[:BELONGS_TO]->(c:Course)
+        OPTIONAL MATCH (cr)-[:BELONGS_TO]->(c:Course)
         RETURN cr, c, t
         ORDER BY cr.academicYear DESC, cr.semester DESC
         """)
@@ -32,7 +43,7 @@ public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long
 
     @Query("""
         MATCH (s:User {userId: $studentId})-[:ENROLLED_IN]->(cr:ClassRoom)
-        MATCH (cr)-[:BELONGS_TO]->(c:Course)
+        OPTIONAL MATCH (cr)-[:BELONGS_TO]->(c:Course)
         OPTIONAL MATCH (t:User)-[:TEACHES]->(cr)
         RETURN cr, c, t
         """)
@@ -46,7 +57,6 @@ public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long
         RETURN count(s)
         """)
     Long countStudentsInClass(String classId);
-
 
     @Query("""
         MATCH (cr:ClassRoom {classId: $classId})
