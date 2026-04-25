@@ -13,4 +13,5 @@ public interface ClassRoomService {
     void enrollStudent(String classId, String studentId);
     void unenrollStudent(String classId, String studentId);
     List<UserResponse> getStudents(String classId);
+    void deleteClassRoom(String classId);
 }

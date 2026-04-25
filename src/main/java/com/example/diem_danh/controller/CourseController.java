@@ -6,11 +6,13 @@ import com.example.diem_danh.exception.AttendanceException;
 import com.example.diem_danh.model.node.CourseNode;
 import com.example.diem_danh.repository.CourseRepository;
 import jakarta.validation.Valid;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.constraints.*;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +22,15 @@ import java.util.UUID;
 public class CourseController {
 
     private final CourseRepository courseRepository;
+
+    @Data
+    static class UpdateCourseRequest {
+        @NotBlank
+        private String name;
+        @NotNull @Min(1) @Max(10)
+        private Integer credits;
+        private String description;
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CourseNode>>> list() {
@@ -52,12 +63,21 @@ public class CourseController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CourseNode>> update(@PathVariable String id,
-                                                          @Valid @RequestBody CreateCourseRequest req) {
+                                                          @Valid @RequestBody UpdateCourseRequest req) {
         CourseNode course = courseRepository.findByCourseId(id)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy môn học"));
         course.setName(req.getName());
         course.setCredits(req.getCredits());
         course.setDescription(req.getDescription());
         return ResponseEntity.ok(ApiResponse.success(courseRepository.save(course)));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
+        CourseNode course = courseRepository.findByCourseId(id)
+                .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy môn học"));
+        courseRepository.delete(course);
+        return ResponseEntity.ok(ApiResponse.success("Đã xoá môn học", null));
     }
 }

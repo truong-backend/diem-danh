@@ -26,8 +26,6 @@ public class ClassRoomServiceImpl implements ClassRoomService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final UserServiceImpl userService;
-
-    /** Inject ChatService để tự động tạo CLASS conversation */
     private final ChatService chatService;
 
     @Override
@@ -52,15 +50,12 @@ public class ClassRoomServiceImpl implements ClassRoomService {
 
         ClassRoomNode saved = classRoomRepository.save(cr);
 
-        // Tự động tạo CLASS conversation cho lớp học vừa tạo.
-        // Lúc mới tạo lớp chưa có sinh viên → memberIds chỉ có giáo viên.
-        // Khi enroll sinh viên sau đó, thêm sv vào conversation luôn.
         try {
             chatService.createClassConversation(
                     saved.getClassId(),
                     saved.getName(),
                     teacher.getUserId(),
-                    List.of() // Sinh viên sẽ được thêm khi enrollStudent
+                    List.of()
             );
         } catch (Exception e) {
             log.warn("Không thể tạo CLASS conversation cho lớp {}: {}", saved.getClassId(), e.getMessage());
@@ -95,7 +90,6 @@ public class ClassRoomServiceImpl implements ClassRoomService {
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy sinh viên"));
         classRoomRepository.enrollStudent(classId, studentId);
 
-        // Thêm sinh viên vào CLASS conversation tương ứng
         try {
             chatService.addMemberToClassConversation(classId, studentId);
         } catch (Exception e) {
@@ -115,6 +109,13 @@ public class ClassRoomServiceImpl implements ClassRoomService {
         ClassRoomNode cr = findClass(classId);
         return cr.getStudents()
                 .stream().map(userService::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void deleteClassRoom(String classId) {
+        ClassRoomNode cr = findClass(classId);
+        classRoomRepository.delete(cr);
     }
 
     private ClassRoomNode findClass(String classId) {

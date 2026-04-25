@@ -40,6 +40,13 @@ public class ClassRoomController {
         return ResponseEntity.ok(ApiResponse.success(classRoomService.getClassRoom(id)));
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
+        classRoomService.deleteClassRoom(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã xoá lớp học", null));
+    }
+
     @GetMapping("/{id}/students")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getStudents(@PathVariable String id) {
