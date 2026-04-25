@@ -4,12 +4,13 @@ import { useClassRoomViewModel } from "../viewmodels/useClassRoomViewModel";
 import { useAuth } from "../hooks/useAuth";
 import { Modal } from "../components/ui/Modal";
 import { TableSkeleton } from "../components/ui/Skeleton";
-import { Plus, Users, Calendar, ChevronRight, Info, Trash2, Pencil } from "lucide-react";
+import { Plus, Users, Calendar, ChevronRight, Trash2, Pencil, Check } from "lucide-react";
 import { classroomService } from "../services/classroom.service";
 import type { ClassRoom, CreateClassRoomPayload, Course } from "../models/classroom.model";
 import { userService } from "../services/user.service";
 
-const SCHEDULES = [
+// Tất cả các khung giờ có thể học
+const ALL_SLOTS = [
   "Thứ 2, 7:30-9:30","Thứ 2, 9:30-11:30","Thứ 2, 13:30-15:30","Thứ 2, 15:30-17:30",
   "Thứ 3, 7:30-9:30","Thứ 3, 9:30-11:30","Thứ 3, 13:30-15:30","Thứ 3, 15:30-17:30",
   "Thứ 4, 7:30-9:30","Thứ 4, 9:30-11:30","Thứ 4, 13:30-15:30","Thứ 4, 15:30-17:30",
@@ -19,19 +20,24 @@ const SCHEDULES = [
   "Thứ 7, 7:30-9:30","Thứ 7, 9:30-11:30",
 ]
 
+// schedule lưu nhiều buổi ngăn cách bởi " | "
+const scheduleToSlots = (schedule?: string): string[] =>
+  schedule ? schedule.split("|").map(s => s.trim()).filter(Boolean) : []
+
+const slotsToSchedule = (slots: string[]): string => slots.join(" | ")
+
 const EMPTY_FORM: CreateClassRoomPayload = {
   name: "", courseId: "", teacherId: "",
   semester: "HK1", academicYear: "2024-2025",
   maxStudents: 40, schedule: "",
 }
 
-// ============================================================
-// ClassForm tách ra NGOÀI component chính để tránh re-mount
-// khi state của ClassListView thay đổi → input không bị mất focus
-// ============================================================
+// ── ClassForm (outside parent để tránh re-mount khi state thay đổi) ───────────
 interface ClassFormProps {
   form: CreateClassRoomPayload
+  selectedSlots: string[]
   onChange: (field: keyof CreateClassRoomPayload, value: any) => void
+  onToggleSlot: (slot: string) => void
   onSubmit: (e: React.FormEvent) => void
   onClose: () => void
   saving: boolean
@@ -39,26 +45,16 @@ interface ClassFormProps {
   courses: Course[]
   teachers: any[]
   isAdmin: boolean
-  noCourses?: boolean
 }
 
 function ClassForm({
-  form, onChange, onSubmit, onClose, saving, submitLabel,
-  courses, teachers, isAdmin, noCourses,
+  form, selectedSlots, onChange, onToggleSlot,
+  onSubmit, onClose, saving, submitLabel,
+  courses, teachers, isAdmin,
 }: ClassFormProps) {
-  if (noCourses) {
-    return (
-      <div className="py-8 text-center">
-        <Info className="w-10 h-10 text-yellow-400 mx-auto mb-3" />
-        <p className="text-on-surface font-medium">Chưa có môn học nào</p>
-        <p className="text-sm text-on-surface-variant mt-1">Vui lòng tạo môn học trước.</p>
-        <button className="btn-secondary mt-4" onClick={onClose}>Đóng</button>
-      </div>
-    )
-  }
-
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {/* Tên lớp */}
       <div>
         <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Tên lớp</label>
         <input
@@ -69,6 +65,7 @@ function ClassForm({
         />
       </div>
 
+      {/* Môn học */}
       <div>
         <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Môn học</label>
         <select className="input" required value={form.courseId} onChange={e => onChange("courseId", e.target.value)}>
@@ -79,6 +76,7 @@ function ClassForm({
         </select>
       </div>
 
+      {/* Giáo viên */}
       {isAdmin && (
         <div>
           <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Giáo viên phụ trách</label>
@@ -91,6 +89,7 @@ function ClassForm({
         </div>
       )}
 
+      {/* Học kỳ + Năm học */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Học kỳ</label>
@@ -102,21 +101,71 @@ function ClassForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Sĩ số tối đa</label>
-          <input
-            type="number" className="input" min={1} max={200}
-            value={form.maxStudents}
-            onChange={e => onChange("maxStudents", +e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Lịch học</label>
-          <select className="input" value={form.schedule || ""} onChange={e => onChange("schedule", e.target.value)}>
-            <option value="">Chọn lịch học</option>
-            {SCHEDULES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+      {/* Sĩ số */}
+      <div>
+        <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Sĩ số tối đa</label>
+        <input
+          type="number" className="input" min={1} max={200}
+          value={form.maxStudents}
+          onChange={e => onChange("maxStudents", +e.target.value)}
+        />
+      </div>
+
+      {/* Lịch học — multi-select checkbox */}
+      <div>
+        <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
+          Lịch học
+          {selectedSlots.length > 0 && (
+            <span className="ml-2 text-primary-700 font-normal normal-case">
+              ({selectedSlots.length} buổi đã chọn)
+            </span>
+          )}
+        </label>
+
+        {/* Preview buổi đã chọn */}
+        {selectedSlots.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {selectedSlots.map(s => (
+              <span
+                key={s}
+                className="inline-flex items-center gap-1 text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded-full font-medium cursor-pointer hover:bg-red-100 hover:text-red-600 transition-colors"
+                onClick={() => onToggleSlot(s)}
+                title="Nhấp để bỏ chọn"
+              >
+                {s} ×
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Grid checkbox */}
+        <div className="border border-outline-variant/30 rounded-xl p-3 max-h-52 overflow-y-auto grid grid-cols-2 gap-1.5 bg-surface-container/30">
+          {ALL_SLOTS.map(slot => {
+            const checked = selectedSlots.includes(slot)
+            return (
+              <label
+                key={slot}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm transition-colors
+                  ${checked
+                    ? "bg-primary-100 text-primary-800 font-medium"
+                    : "hover:bg-surface-container text-on-surface-variant"
+                  }`}
+              >
+                <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors
+                  ${checked ? "bg-primary-800 border-primary-800" : "border-outline-variant"}`}
+                >
+                  {checked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                </span>
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={checked}
+                  onChange={() => onToggleSlot(slot)}
+                />
+                {slot}
+              </label>
+            )
+          })}
         </div>
       </div>
 
@@ -130,9 +179,7 @@ function ClassForm({
   )
 }
 
-// ============================================================
-// Main component
-// ============================================================
+// ── Main component ─────────────────────────────────────────────────────────────
 export default function ClassListView() {
   const { classes, loading, createClass, updateClass, deleteClass } = useClassRoomViewModel()
   const { isAdmin, isTeacher, user } = useAuth()
@@ -140,62 +187,63 @@ export default function ClassListView() {
 
   const [courses, setCourses] = useState<Course[]>([])
   const [teachers, setTeachers] = useState<any[]>([])
-  const [metaLoaded, setMetaLoaded] = useState(false)
 
-  // --- Create modal ---
+  // Load courses + teachers ngay khi mount (không đợi mở modal)
+  useEffect(() => {
+    classroomService.getCourses().then(setCourses)
+    if (isAdmin) {
+      userService.list({ role: "TEACHER", size: 100 }).then(r => setTeachers(r.content))
+    }
+  }, [isAdmin])
+
+  // ── Create modal ──────────────────────────────────────────────────────────
   const [showCreate, setShowCreate] = useState(false)
   const [createForm, setCreateForm] = useState<CreateClassRoomPayload>({ ...EMPTY_FORM })
+  const [createSlots, setCreateSlots] = useState<string[]>([])
   const [creating, setCreating] = useState(false)
 
-  // --- Edit modal ---
-  const [showEdit, setShowEdit] = useState(false)
-  const [editTarget, setEditTarget] = useState<ClassRoom | null>(null)
-  const [editForm, setEditForm] = useState<CreateClassRoomPayload>({ ...EMPTY_FORM })
-  const [editing, setEditing] = useState(false)
-
-  // Load danh sách môn + giáo viên khi cần
-  const loadMeta = async () => {
-    if (metaLoaded) return
-    const [c] = await Promise.all([classroomService.getCourses()])
-    setCourses(c)
-    if (isAdmin) {
-      const t = await userService.list({ role: "TEACHER", size: 100 })
-      setTeachers(t.content)
-    }
-    setMetaLoaded(true)
-  }
-
-  useEffect(() => {
-    if (showCreate || showEdit) loadMeta()
-  }, [showCreate, showEdit])
-
-  // Handler dùng chung thay đổi 1 field — tránh tạo object mới mỗi render
-  const handleCreateChange = (field: keyof CreateClassRoomPayload, value: any) => {
+  const handleCreateChange = (field: keyof CreateClassRoomPayload, value: any) =>
     setCreateForm(prev => ({ ...prev, [field]: value }))
-  }
 
-  const handleEditChange = (field: keyof CreateClassRoomPayload, value: any) => {
-    setEditForm(prev => ({ ...prev, [field]: value }))
-  }
+  const toggleCreateSlot = (slot: string) =>
+    setCreateSlots(prev =>
+      prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot]
+    )
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreating(true)
-    const payload = isTeacher && user
-      ? { ...createForm, teacherId: user.userId }
-      : createForm
+    const payload = {
+      ...(isTeacher && user ? { ...createForm, teacherId: user.userId } : createForm),
+      schedule: slotsToSchedule(createSlots),
+    }
     const ok = await createClass(payload)
     setCreating(false)
     if (ok) {
       setShowCreate(false)
       setCreateForm({ ...EMPTY_FORM })
+      setCreateSlots([])
     }
   }
+
+  // ── Edit modal ────────────────────────────────────────────────────────────
+  const [showEdit, setShowEdit] = useState(false)
+  const [editTarget, setEditTarget] = useState<ClassRoom | null>(null)
+  const [editForm, setEditForm] = useState<CreateClassRoomPayload>({ ...EMPTY_FORM })
+  const [editSlots, setEditSlots] = useState<string[]>([])
+  const [editing, setEditing] = useState(false)
+
+  const handleEditChange = (field: keyof CreateClassRoomPayload, value: any) =>
+    setEditForm(prev => ({ ...prev, [field]: value }))
+
+  const toggleEditSlot = (slot: string) =>
+    setEditSlots(prev =>
+      prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot]
+    )
 
   const openEdit = (e: React.MouseEvent, cr: ClassRoom) => {
     e.stopPropagation()
     setEditTarget(cr)
-    // Pre-fill đầy đủ dữ liệu hiện tại của lớp
     setEditForm({
       name: cr.name,
       courseId: cr.course?.courseId ?? "",
@@ -205,6 +253,7 @@ export default function ClassListView() {
       maxStudents: cr.maxStudents ?? 40,
       schedule: cr.schedule ?? "",
     })
+    setEditSlots(scheduleToSlots(cr.schedule))
     setShowEdit(true)
   }
 
@@ -212,12 +261,12 @@ export default function ClassListView() {
     e.preventDefault()
     if (!editTarget) return
     setEditing(true)
-    const ok = await updateClass(editTarget.classId, editForm)
+    const ok = await updateClass(editTarget.classId, {
+      ...editForm,
+      schedule: slotsToSchedule(editSlots),
+    })
     setEditing(false)
-    if (ok) {
-      setShowEdit(false)
-      setEditTarget(null)
-    }
+    if (ok) { setShowEdit(false); setEditTarget(null) }
   }
 
   const handleDelete = async (e: React.MouseEvent, classId: string, name: string) => {
@@ -228,7 +277,6 @@ export default function ClassListView() {
 
   return (
     <div className="p-6 space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Quản lý lớp học</span>
@@ -242,7 +290,6 @@ export default function ClassListView() {
         )}
       </div>
 
-      {/* Danh sách lớp */}
       <div className="card">
         {loading ? <TableSkeleton /> : (
           <div className="divide-y divide-outline-variant/10">
@@ -264,7 +311,10 @@ export default function ClassListView() {
                 <div className="flex items-center gap-4 text-sm text-on-surface-variant ml-4 shrink-0">
                   <span className="flex items-center gap-1"><Users className="w-4 h-4" />{cr.studentCount ?? 0} SV</span>
                   {cr.schedule && (
-                    <span className="items-center gap-1 hidden md:flex"><Calendar className="w-4 h-4" />{cr.schedule}</span>
+                    <span className="items-center gap-1 hidden md:flex">
+                      <Calendar className="w-4 h-4" />
+                      <span className="max-w-xs truncate">{cr.schedule}</span>
+                    </span>
                   )}
                 </div>
                 {isAdmin && (
@@ -296,18 +346,19 @@ export default function ClassListView() {
       </div>
 
       {/* Modal tạo lớp */}
-      <Modal open={showCreate} onClose={() => { setShowCreate(false); setCreateForm({ ...EMPTY_FORM }) }} title="Tạo lớp học mới" size="md">
+      <Modal open={showCreate} onClose={() => { setShowCreate(false); setCreateForm({ ...EMPTY_FORM }); setCreateSlots([]) }} title="Tạo lớp học mới" size="md">
         <ClassForm
           form={createForm}
+          selectedSlots={createSlots}
           onChange={handleCreateChange}
+          onToggleSlot={toggleCreateSlot}
           onSubmit={handleCreate}
-          onClose={() => { setShowCreate(false); setCreateForm({ ...EMPTY_FORM }) }}
+          onClose={() => { setShowCreate(false); setCreateForm({ ...EMPTY_FORM }); setCreateSlots([]) }}
           saving={creating}
           submitLabel="Tạo lớp"
           courses={courses}
           teachers={teachers}
           isAdmin={isAdmin}
-          noCourses={courses.length === 0}
         />
       </Modal>
 
@@ -320,7 +371,9 @@ export default function ClassListView() {
       >
         <ClassForm
           form={editForm}
+          selectedSlots={editSlots}
           onChange={handleEditChange}
+          onToggleSlot={toggleEditSlot}
           onSubmit={handleEdit}
           onClose={() => { setShowEdit(false); setEditTarget(null) }}
           saving={editing}
