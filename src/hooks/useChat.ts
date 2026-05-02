@@ -81,7 +81,6 @@ export function useChat() {
     } catch { }
   }, []);
 
-  // Subscribe tin nhắn của conversation đang mở
   useEffect(() => {
     const client = stompRef.current;
     if (!client || !activeConv) return;
@@ -96,26 +95,23 @@ export function useChat() {
             if (!activeConvRef.current) return;
 
             if (payload.eventType === 'MESSAGE_SENT' && payload.message) {
-              // Tin nhắn mới broadcast từ REST
               const newMsg: Message = payload.message;
               if (!newMsg.messageId) return;
               setMessages(prev => {
                 if (prev.some(m => m.messageId === newMsg.messageId)) return prev;
-                return [newMsg, ...prev]; // prepend vì list đang reverse khi render
+                return [newMsg, ...prev];
               });
             } else if (payload.eventType && payload.message) {
-              // Edit / delete / pin / unpin — cập nhật đúng tin nhắn
               const updatedMsg: Message = payload.message;
               setMessages(prev =>
                 prev.map(m => m.messageId === updatedMsg.messageId ? updatedMsg : m)
               );
             } else {
-              // Tin nhắn mới — broadcast trực tiếp từ WS /app/chat.send
               const msg: Message = payload;
               if (!msg.messageId) return;
               setMessages(prev => {
                 if (prev.some(m => m.messageId === msg.messageId)) return prev;
-                return [msg, ...prev]; // prepend vì list đang reverse khi render
+                return [msg, ...prev];
               });
             }
           } catch (err) {
@@ -137,7 +133,6 @@ export function useChat() {
     return () => { if (msgSub) msgSub.unsubscribe(); };
   }, [activeConv?.conversationId]); // eslint-disable-line
 
-  // Subscribe group update events
   useEffect(() => {
     const client = stompRef.current;
     if (!client || !activeConv || activeConv.type === 'PRIVATE') return;
@@ -191,7 +186,6 @@ export function useChat() {
 
   const sendMessage = useCallback(async (content: string) => {
     if (!activeConvRef.current || !content.trim()) return;
-    // Gửi REST → backend broadcast WS → subscriber nhận → UI tự cập nhật
     await chatService.sendMessage({
       conversationId: activeConvRef.current.conversationId,
       content,
