@@ -2,11 +2,7 @@ package com.example.diem_danh.dto.response;
 
 import lombok.*;
 
-// ApiResponse — static factory method pattern
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Data @Builder
 public class ApiResponse<T> {
     private boolean success;
     private String message;
@@ -18,5 +14,9 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> success(String message, T data) {
         return ApiResponse.<T>builder().success(true).message(message).data(data).build();
+    }
+
+    public static <T> ApiResponse<T> error(String message) {
+        return ApiResponse.<T>builder().success(false).message(message).build();
     }
 }
