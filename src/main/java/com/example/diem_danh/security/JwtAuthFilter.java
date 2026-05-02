@@ -23,7 +23,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final RedisService redisService;   // NEW: JWT blacklist check
+    private final RedisService redisService;   // JWT blacklist check
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

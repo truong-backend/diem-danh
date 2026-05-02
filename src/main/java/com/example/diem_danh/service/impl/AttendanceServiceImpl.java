@@ -96,7 +96,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
             AttendanceEvent.EventType eventType =
                     "LATE".equals(status) ? AttendanceEvent.EventType.LATE_ALERT
-                                          : AttendanceEvent.EventType.CHECK_IN;
+                            : AttendanceEvent.EventType.CHECK_IN;
 
             publisherService.publishAttendanceEvent(AttendanceEvent.builder()
                     .attendanceId(saved.getAttendanceId())

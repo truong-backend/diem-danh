@@ -68,12 +68,9 @@ public class RedisConfig {
 
         return RedisCacheManager.builder(factory)
                 .cacheDefaults(config)
-                .withCacheConfiguration("sessions",
-                        config.entryTtl(Duration.ofMinutes(10)))
-                .withCacheConfiguration("qr-tokens",
-                        config.entryTtl(Duration.ofMinutes(5)))
-                .withCacheConfiguration("users",
-                        config.entryTtl(Duration.ofMinutes(30)))
+                .withCacheConfiguration("sessions", config.entryTtl(Duration.ofMinutes(10)))
+                .withCacheConfiguration("qr-tokens", config.entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration("users", config.entryTtl(Duration.ofMinutes(30)))
                 .build();
     }
 }

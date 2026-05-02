@@ -15,9 +15,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Consumer xử lý NotificationEvent từ notification.queue.
+ * Consumer xử lý NotificationEvent từ notification.queue (FIFO Queue).
  * Thực hiện 2 việc:
- *  1. Lưu notification vào Neo4j
+ *  1. Lưu notification vào Neo4j (HEAP — object được GC khi hết reference)
  *  2. Push realtime tới client qua WebSocket (STOMP)
  */
 @Slf4j
@@ -29,7 +29,7 @@ public class NotificationEventConsumer {
     private final SimpMessagingTemplate messagingTemplate;
 
     @RabbitListener(queues = "${app.rabbitmq.queue.notification}",
-                    containerFactory = "rabbitListenerContainerFactory")
+            containerFactory = "rabbitListenerContainerFactory")
     @Transactional
     public void handleNotificationEvent(NotificationEvent event) {
         log.info("[NOTIFICATION-CONSUMER] Received event: id={}, type={}, recipients={}",
@@ -46,12 +46,10 @@ public class NotificationEventConsumer {
             } catch (Exception e) {
                 log.error("[NOTIFICATION-CONSUMER] Error for recipient={}: {}",
                         recipientId, e.getMessage(), e);
-                throw e; // re-throw để đưa vào DLQ
+                throw e;
             }
         }
     }
-
-    // ── Private ───────────────────────────────────────────────────────────────
 
     private void processForRecipient(String recipientId, NotificationEvent event) {
         // 1. Lưu vào Neo4j
@@ -67,8 +65,6 @@ public class NotificationEventConsumer {
                 .build();
 
         NotificationNode saved = notificationRepository.save(node);
-        log.debug("[NOTIFICATION-CONSUMER] Saved notification {} for recipient={}",
-                saved.getNotificationId(), recipientId);
 
         // 2. Push qua WebSocket STOMP
         pushWebSocket(recipientId, saved);
@@ -91,7 +87,6 @@ public class NotificationEventConsumer {
 
             log.debug("[NOTIFICATION-CONSUMER] WebSocket pushed to user={}", recipientId);
         } catch (Exception e) {
-            // WebSocket push thất bại không nên rollback DB transaction
             log.warn("[NOTIFICATION-CONSUMER] WebSocket push failed for user={}: {}",
                     recipientId, e.getMessage());
         }

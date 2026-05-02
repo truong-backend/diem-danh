@@ -43,26 +43,17 @@ public class RedisService {
 
     // ── QR Token ──────────────────────────────────────────────────────────────
 
-    /**
-     * Lưu QR token vào Redis với TTL bằng thời gian hết hạn của QR.
-     */
     public void saveQrToken(String sessionId, String qrToken, long ttlSeconds) {
         String key = qrKey(sessionId);
         redisTemplate.opsForValue().set(key, qrToken, Duration.ofSeconds(ttlSeconds));
         log.debug("QR token saved to Redis: key={}, ttl={}s", key, ttlSeconds);
     }
 
-    /**
-     * Lấy QR token hiện tại của session từ Redis.
-     */
     public Optional<String> getQrToken(String sessionId) {
         Object value = redisTemplate.opsForValue().get(qrKey(sessionId));
         return Optional.ofNullable(value).map(Object::toString);
     }
 
-    /**
-     * Xoá QR token khi session kết thúc hoặc QR bị thu hồi.
-     */
     public void invalidateQrToken(String sessionId) {
         redisTemplate.delete(qrKey(sessionId));
         log.debug("QR token invalidated for session={}", sessionId);
@@ -84,10 +75,6 @@ public class RedisService {
 
     // ── JWT Blacklist ─────────────────────────────────────────────────────────
 
-    /**
-     * Thêm JWT vào blacklist khi user logout.
-     * TTL = thời gian còn lại đến khi token hết hạn.
-     */
     public void blacklistJwt(String token, long remainingSeconds) {
         if (remainingSeconds > 0) {
             redisTemplate.opsForValue().set(
@@ -118,9 +105,6 @@ public class RedisService {
         redisTemplate.delete(attendanceLockKey(studentId, sessionId));
     }
 
-    /**
-     * Kiểm tra sinh viên đã điểm danh buổi này chưa (từ cache).
-     */
     public boolean hasAttendanceLock(String studentId, String sessionId) {
         return Boolean.TRUE.equals(
                 redisTemplate.hasKey(attendanceLockKey(studentId, sessionId)));

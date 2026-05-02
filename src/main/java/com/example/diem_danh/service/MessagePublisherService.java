@@ -12,7 +12,7 @@ import java.util.UUID;
 
 /**
  * Service publish các event lên RabbitMQ.
- * Tách riêng khỏi business logic để dễ mock trong test.
+ * Tách riêng khỏi business logic để dễ mock trong test. (SRP)
  */
 @Slf4j
 @Service
@@ -33,11 +33,6 @@ public class MessagePublisherService {
     @Value("${app.rabbitmq.routing.attendance}")
     private String attendanceRoutingKey;
 
-    // ── Attendance events ─────────────────────────────────────────────────────
-
-    /**
-     * Publish event điểm danh (QR hoặc manual) lên attendance queue.
-     */
     public void publishAttendanceEvent(AttendanceEvent event) {
         if (event.getEventId() == null) {
             event.setEventId(UUID.randomUUID().toString());
@@ -48,16 +43,9 @@ public class MessagePublisherService {
                     event.getEventId(), event.getEventType(), event.getStudentId());
         } catch (Exception e) {
             log.error("Failed to publish attendance event: {}", e.getMessage(), e);
-            // Không throw để không làm gián đoạn luồng điểm danh chính
         }
     }
 
-    // ── Notification events ───────────────────────────────────────────────────
-
-    /**
-     * Publish notification event lên notification queue.
-     * Consumer sẽ lưu Neo4j + push WebSocket.
-     */
     public void publishNotificationEvent(NotificationEvent event) {
         if (event.getEventId() == null) {
             event.setEventId(UUID.randomUUID().toString());
@@ -71,9 +59,6 @@ public class MessagePublisherService {
         }
     }
 
-    /**
-     * Tiện ích: publish notification đơn giản cho một người nhận.
-     */
     public void publishSingleNotification(String recipientId, String type,
                                           String title, String message, String referenceId) {
         publishNotificationEvent(NotificationEvent.builder()

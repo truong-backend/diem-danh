@@ -13,47 +13,37 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    // ── Exchange names ────────────────────────────────────────────────────────
     @Value("${app.rabbitmq.exchange.notification}")
     private String notificationExchange;
 
     @Value("${app.rabbitmq.exchange.attendance}")
     private String attendanceExchange;
 
-    // ── Queue names ───────────────────────────────────────────────────────────
     @Value("${app.rabbitmq.queue.notification}")
     private String notificationQueue;
 
     @Value("${app.rabbitmq.queue.attendance}")
     private String attendanceQueue;
 
-    // ── Routing keys ─────────────────────────────────────────────────────────
     @Value("${app.rabbitmq.routing.notification}")
     private String notificationRoutingKey;
 
     @Value("${app.rabbitmq.routing.attendance}")
     private String attendanceRoutingKey;
 
-    // ── Exchanges ─────────────────────────────────────────────────────────────
-
     @Bean
     public DirectExchange notificationExchange() {
-        return ExchangeBuilder.directExchange(notificationExchange)
-                .durable(true).build();
+        return ExchangeBuilder.directExchange(notificationExchange).durable(true).build();
     }
 
     @Bean
     public DirectExchange attendanceExchange() {
-        return ExchangeBuilder.directExchange(attendanceExchange)
-                .durable(true).build();
+        return ExchangeBuilder.directExchange(attendanceExchange).durable(true).build();
     }
-
-    // ── Queues ────────────────────────────────────────────────────────────────
 
     @Bean
     public Queue notificationQueue() {
         return QueueBuilder.durable(notificationQueue)
-                // Dead-letter exchange để xử lý message lỗi
                 .withArgument("x-dead-letter-exchange", "dlx.exchange")
                 .withArgument("x-dead-letter-routing-key", "dlx.notification")
                 .build();
@@ -66,8 +56,6 @@ public class RabbitMQConfig {
                 .withArgument("x-dead-letter-routing-key", "dlx.attendance")
                 .build();
     }
-
-    // ── Dead Letter Exchange & Queues ─────────────────────────────────────────
 
     @Bean
     public DirectExchange deadLetterExchange() {
@@ -84,37 +72,25 @@ public class RabbitMQConfig {
         return QueueBuilder.durable("dlq.attendance").build();
     }
 
-    // ── Bindings ──────────────────────────────────────────────────────────────
-
     @Bean
     public Binding notificationBinding() {
-        return BindingBuilder.bind(notificationQueue())
-                .to(notificationExchange())
-                .with(notificationRoutingKey);
+        return BindingBuilder.bind(notificationQueue()).to(notificationExchange()).with(notificationRoutingKey);
     }
 
     @Bean
     public Binding attendanceBinding() {
-        return BindingBuilder.bind(attendanceQueue())
-                .to(attendanceExchange())
-                .with(attendanceRoutingKey);
+        return BindingBuilder.bind(attendanceQueue()).to(attendanceExchange()).with(attendanceRoutingKey);
     }
 
     @Bean
     public Binding dlqNotificationBinding() {
-        return BindingBuilder.bind(dlqNotification())
-                .to(deadLetterExchange())
-                .with("dlx.notification");
+        return BindingBuilder.bind(dlqNotification()).to(deadLetterExchange()).with("dlx.notification");
     }
 
     @Bean
     public Binding dlqAttendanceBinding() {
-        return BindingBuilder.bind(dlqAttendance())
-                .to(deadLetterExchange())
-                .with("dlx.attendance");
+        return BindingBuilder.bind(dlqAttendance()).to(deadLetterExchange()).with("dlx.attendance");
     }
-
-    // ── Serialization & Template ──────────────────────────────────────────────
 
     @Bean
     public MessageConverter jsonMessageConverter() {
@@ -131,8 +107,7 @@ public class RabbitMQConfig {
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             ConnectionFactory connectionFactory) {
-        SimpleRabbitListenerContainerFactory factory =
-                new SimpleRabbitListenerContainerFactory();
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(jsonMessageConverter());
         factory.setConcurrentConsumers(3);

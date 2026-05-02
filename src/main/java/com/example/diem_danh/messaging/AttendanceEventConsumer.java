@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Consumer xử lý AttendanceEvent từ attendance.queue.
- * Sau khi nhận event điểm danh → tự động publish NotificationEvent
- * để thông báo cho giảng viên / sinh viên liên quan.
+ * Consumer xử lý AttendanceEvent từ attendance.queue (FIFO Queue).
+ * Sau khi nhận event điểm danh → tự động publish NotificationEvent.
+ * Chạy trên thread pool của RabbitMQ listener container.
  */
 @Slf4j
 @Component
@@ -23,7 +23,7 @@ public class AttendanceEventConsumer {
     private final MessagePublisherService publisherService;
 
     @RabbitListener(queues = "${app.rabbitmq.queue.attendance}",
-                    containerFactory = "rabbitListenerContainerFactory")
+            containerFactory = "rabbitListenerContainerFactory")
     public void handleAttendanceEvent(AttendanceEvent event) {
         log.info("[ATTENDANCE-CONSUMER] Received event: id={}, type={}, student={}, status={}",
                 event.getEventId(), event.getEventType(),
@@ -43,12 +43,9 @@ public class AttendanceEventConsumer {
         }
     }
 
-    // ── Handlers ──────────────────────────────────────────────────────────────
-
     private void handleCheckIn(AttendanceEvent event) {
-        // Gửi notification tới giảng viên của lớp
         publisherService.publishNotificationEvent(NotificationEvent.builder()
-                .recipientIds(List.of("teacher:" + event.getClassId())) // giáo viên phụ trách
+                .recipientIds(List.of("teacher:" + event.getClassId()))
                 .type("ATTENDANCE_SUBMITTED")
                 .title("Sinh viên đã điểm danh")
                 .message(String.format("%s đã điểm danh buổi học (%s)",
@@ -57,7 +54,6 @@ public class AttendanceEventConsumer {
                 .priority(NotificationEvent.Priority.NORMAL)
                 .build());
 
-        // Gửi xác nhận tới chính sinh viên
         publisherService.publishSingleNotification(
                 event.getStudentId(),
                 "ATTENDANCE_CONFIRMED",
@@ -66,13 +62,9 @@ public class AttendanceEventConsumer {
                         event.getCheckedInAt(), event.getStatus()),
                 event.getSessionId()
         );
-
-        log.info("[ATTENDANCE-CONSUMER] Check-in notifications queued for student={}",
-                event.getStudentId());
     }
 
     private void handleManualUpdate(AttendanceEvent event) {
-        // Thông báo sinh viên khi giảng viên cập nhật điểm danh thủ công
         publisherService.publishSingleNotification(
                 event.getStudentId(),
                 "ATTENDANCE_UPDATED",
@@ -80,13 +72,9 @@ public class AttendanceEventConsumer {
                 String.format("Giảng viên đã cập nhật điểm danh của bạn: %s", event.getStatus()),
                 event.getAttendanceId()
         );
-
-        log.info("[ATTENDANCE-CONSUMER] Manual update notification sent for student={}",
-                event.getStudentId());
     }
 
     private void handleLateAlert(AttendanceEvent event) {
-        // Gửi cảnh báo trễ tới giảng viên với mức độ HIGH
         publisherService.publishNotificationEvent(NotificationEvent.builder()
                 .recipientIds(List.of("teacher:" + event.getClassId()))
                 .type("ATTENDANCE_LATE")
@@ -96,7 +84,5 @@ public class AttendanceEventConsumer {
                 .referenceId(event.getSessionId())
                 .priority(NotificationEvent.Priority.HIGH)
                 .build());
-
-        log.info("[ATTENDANCE-CONSUMER] Late alert sent for student={}", event.getStudentId());
     }
 }
