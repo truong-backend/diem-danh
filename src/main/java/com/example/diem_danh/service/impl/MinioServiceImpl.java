@@ -21,12 +21,9 @@ public class MinioServiceImpl implements MinioService {
     @Value("${minio.bucket}")
     private String bucket;
 
-    // URL nội bộ để MinioClient kết nối upload
     @Value("${minio.endpoint}")
     private String endpoint;
 
-    // URL public để browser có thể truy cập file (đặt trong env MINIO_PUBLIC_URL)
-    // Nếu không có → fallback về endpoint
     @Value("${app.minio.public-url:${minio.endpoint}}")
     private String publicUrl;
 
@@ -50,7 +47,6 @@ public class MinioServiceImpl implements MinioService {
                         .build()
         );
 
-        // Dùng publicUrl thay vì endpoint — để browser có thể load ảnh trực tiếp
         String url = publicUrl.replaceAll("/$", "") + "/" + bucket + "/" + objectName;
         log.info("File uploaded: {} → {}", objectName, url);
         return url;
@@ -72,6 +68,37 @@ public class MinioServiceImpl implements MinioService {
         if (!exists) {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
             log.info("Created MinIO bucket: {}", bucket);
+        }
+        // Set bucket policy = public read-only cho phép browser load ảnh trực tiếp
+        // mà không cần presigned URL
+        setBucketPublicReadPolicy();
+    }
+
+    /**
+     * Set S3-compatible bucket policy để cho phép anonymous GET object.
+     * Cần thiết vì Nginx proxy /minio/ → MinIO không forward Authorization header,
+     * nên MinIO phải được config public-read mới trả file cho browser.
+     */
+    private void setBucketPublicReadPolicy() {
+        String policy = "{"
+                + "\"Version\":\"2012-10-17\","
+                + "\"Statement\":[{"
+                + "\"Effect\":\"Allow\","
+                + "\"Principal\":{\"AWS\":[\"*\"]},"
+                + "\"Action\":[\"s3:GetObject\"],"
+                + "\"Resource\":[\"arn:aws:s3:::" + bucket + "/*\"]"
+                + "}]}";
+        try {
+            minioClient.setBucketPolicy(
+                    SetBucketPolicyArgs.builder()
+                            .bucket(bucket)
+                            .config(policy)
+                            .build()
+            );
+            log.debug("Bucket policy set to public-read for: {}", bucket);
+        } catch (Exception e) {
+            // Log warning nhưng không throw — policy có thể đã được set trước đó
+            log.warn("Could not set bucket policy for {}: {}", bucket, e.getMessage());
         }
     }
 }
