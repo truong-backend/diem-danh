@@ -50,6 +50,11 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         String sessionId = jwtService.extractSubject(req.getQrToken());
 
+        // Kiểm tra nhanh lock trước — tránh xuống Neo4j khi đã rõ là sinh viên này đã điểm danh
+        if (redisService.hasAttendanceLock(studentUserId, sessionId)) {
+            throw AttendanceException.conflict("Sinh viên đã điểm danh buổi này rồi");
+        }
+
         // Validate QR token từ Redis cache (nhanh hơn query Neo4j)
         Optional<String> cachedQr = redisService.getQrToken(sessionId);
         if (cachedQr.isEmpty() || !cachedQr.get().equals(req.getQrToken())) {

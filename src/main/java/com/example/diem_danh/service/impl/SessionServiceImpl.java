@@ -35,15 +35,12 @@ public class SessionServiceImpl implements SessionService {
     private final ClassRoomRepository classRoomRepository;
     private final AttendanceRepository attendanceRepository;
     private final NotificationService notificationService;
-    private final RedisTemplate<String, Object> redisTemplate;  // NEW
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisService redisService;
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final String SESSION_CACHE_PREFIX = "session:data:";
 
-    /**
-     * Key Redis dùng cho idempotency lock khi tạo buổi học.
-     * Format: session:create:{classId}:{sessionNumber}
-     * TTL: 10 giây — đủ để chặn double-click, không block lần tạo hợp lệ sau này.
-     */
     private String createLockKey(String classId, int sessionNumber) {
         return "session:create:" + classId + ":" + sessionNumber;
     }
@@ -54,7 +51,6 @@ public class SessionServiceImpl implements SessionService {
         ClassRoomNode cr = classRoomRepository.findByClassId(classId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp: " + classId));
 
-        // ── Lớp bảo vệ 1: Redis idempotency lock (chặn double-click / spam) ──
         String lockKey = createLockKey(classId, req.getSessionNumber());
         Boolean acquired = redisTemplate.opsForValue()
                 .setIfAbsent(lockKey, "1", Duration.ofSeconds(10));
@@ -67,13 +63,11 @@ public class SessionServiceImpl implements SessionService {
         }
 
         try {
-            // ── Lớp bảo vệ 2: Kiểm tra DB — cùng lớp, cùng số buổi ──────────
             if (sessionRepository.existsByClassIdAndSessionNumber(classId, req.getSessionNumber())) {
                 throw AttendanceException.conflict(
                         "Buổi học số " + req.getSessionNumber() + " đã tồn tại trong lớp này.");
             }
 
-            // ── Tạo buổi học ──────────────────────────────────────────────────
             SessionNode session = SessionNode.builder()
                     .sessionId("SES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                     .sessionNumber(req.getSessionNumber())
@@ -87,7 +81,6 @@ public class SessionServiceImpl implements SessionService {
             SessionNode saved = sessionRepository.save(session);
             log.info("Session created: {} for class={}", saved.getSessionId(), classId);
 
-            // Gửi thông báo cho sinh viên (async, không block)
             try {
                 String title = "Buổi học mới - " + cr.getName();
                 String msg = String.format("Buổi %d: %s tại phòng %s",
@@ -104,16 +97,35 @@ public class SessionServiceImpl implements SessionService {
             return toResponse(saved);
 
         } catch (AttendanceException e) {
-            // Giải phóng lock ngay nếu lỗi để không block request hợp lệ
             redisTemplate.delete(lockKey);
             throw e;
         }
-        // Nếu thành công: giữ lock 10s để chặn request trùng gửi liền sau đó
     }
 
     @Override
     public SessionResponse getSession(String sessionId) {
-        return toResponse(findSession(sessionId));
+        // Thử lấy từ Redis cache trước, tránh query Neo4j mỗi lần
+        String cacheKey = SESSION_CACHE_PREFIX + sessionId;
+        try {
+            Object cached = redisService.getCachedValue(cacheKey).orElse(null);
+            if (cached instanceof SessionResponse) {
+                log.debug("Session cache hit: {}", sessionId);
+                return (SessionResponse) cached;
+            }
+        } catch (Exception e) {
+            log.warn("Redis cache read failed for session {}: {}", sessionId, e.getMessage());
+        }
+
+        SessionResponse response = toResponse(findSession(sessionId));
+
+        // Lưu vào cache TTL 10 phút
+        try {
+            redisService.cacheValue(cacheKey, response, 600);
+        } catch (Exception e) {
+            log.warn("Redis cache write failed for session {}: {}", sessionId, e.getMessage());
+        }
+
+        return response;
     }
 
     @Override
@@ -124,6 +136,9 @@ public class SessionServiceImpl implements SessionService {
         session.setEndTime(req.getEndTime());
         session.setRoom(req.getRoom());
         SessionNode saved = sessionRepository.save(session);
+
+        // Xóa cache cũ vì data đã thay đổi
+        redisService.deleteKey(SESSION_CACHE_PREFIX + sessionId);
 
         try {
             if (saved.getClassRoom() != null) {
@@ -151,6 +166,10 @@ public class SessionServiceImpl implements SessionService {
     @Transactional
     public void deleteSession(String sessionId) {
         SessionNode session = findSession(sessionId);
+
+        // Xóa cache session và QR token trong Redis trước khi xóa DB
+        redisService.deleteKey(SESSION_CACHE_PREFIX + sessionId);
+        redisService.invalidateQrToken(sessionId);
 
         try {
             if (session.getClassRoom() != null) {

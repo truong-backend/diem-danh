@@ -29,7 +29,7 @@ public class QrServiceImpl implements QrService {
 
     private final SessionRepository sessionRepository;
     private final JwtService jwtService;
-    private final RedisService redisService;   // NEW
+    private final RedisService redisService;
 
     @Override
     @Transactional
@@ -37,23 +37,25 @@ public class QrServiceImpl implements QrService {
         SessionNode session = sessionRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy buổi học: " + sessionId));
 
+        // Xóa QR cũ trong Redis trước khi tạo mới — tránh QR cũ vẫn còn hiệu lực song song
+        redisService.invalidateQrToken(sessionId);
+
         String qrToken = jwtService.generateQrToken(sessionId,
                 session.getClassRoom() != null ? session.getClassRoom().getClassId() : "");
 
         long ttlSeconds = jwtService.getQrExpiration() / 1000;
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(ttlSeconds);
 
-        String qrContent  = "ATD:" + qrToken;
+        String qrContent   = "ATD:" + qrToken;
         String base64Image = generateQrImage(qrContent);
 
-        // Lưu vào DB
         session.setQrToken(qrToken);
         session.setQrExpiresAt(expiresAt);
         session.setQrImageBase64(base64Image);
         session.setStatus("ONGOING");
         sessionRepository.save(session);
 
-        // Cache token vào Redis (TTL = thời gian QR còn hiệu lực)
+        // Cache token mới vào Redis
         redisService.saveQrToken(sessionId, qrToken, ttlSeconds);
         log.info("QR generated and cached for session={}, ttl={}s", sessionId, ttlSeconds);
 
@@ -68,11 +70,9 @@ public class QrServiceImpl implements QrService {
 
     @Override
     public QrResponse getActiveQr(String sessionId) {
-        // Ưu tiên lấy từ Redis cache trước
         Optional<String> cachedToken = redisService.getQrToken(sessionId);
 
         if (cachedToken.isPresent()) {
-            // Tính thời gian còn lại từ JWT
             String token = cachedToken.get();
             long secondsLeft = 0;
             try {
@@ -81,7 +81,6 @@ public class QrServiceImpl implements QrService {
             } catch (Exception ignored) {}
 
             if (secondsLeft > 0) {
-                // Lấy ảnh QR từ DB
                 SessionNode session = sessionRepository.findBySessionId(sessionId)
                         .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy buổi học"));
                 return QrResponse.builder()
@@ -94,7 +93,6 @@ public class QrServiceImpl implements QrService {
             }
         }
 
-        // Fallback: kiểm tra DB
         SessionNode session = sessionRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy buổi học"));
 
