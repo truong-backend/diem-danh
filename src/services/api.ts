@@ -33,8 +33,10 @@ function isTokenExpired(token: string | null | undefined): boolean {
 api.interceptors.request.use((config) => {
   const { accessToken, refreshToken, logout } = useAuthStore.getState()
 
-  // Nếu cả 2 token đều hết hạn → logout ngay, không gửi request nữa
-  if (isTokenExpired(accessToken) && isTokenExpired(refreshToken)) {
+  // Nếu đã có token nhưng cả 2 đều hết hạn → logout ngay, không gửi request nữa
+  // (không cancel khi chưa đăng nhập — cả 2 token đều null)
+  if (accessToken && refreshToken &&
+      isTokenExpired(accessToken) && isTokenExpired(refreshToken)) {
     logout()
     return Promise.reject(new axios.Cancel('SESSION_EXPIRED'))
   }
