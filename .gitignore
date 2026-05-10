@@ -34,3 +34,4 @@ build/
 
 ### Sensitive files ###
 .env
+Docker-compose.yml
