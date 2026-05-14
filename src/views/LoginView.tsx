@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuthViewModel } from '../viewmodels/useAuthViewModel'
 import { BookOpen } from 'lucide-react'
 
@@ -47,7 +47,12 @@ export default function LoginView() {
               />
             </div>
             <div>
-              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Mật khẩu</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Mật khẩu</label>
+                <Link to="/forgot-password" className="text-xs text-primary-600 hover:underline">
+                  Quên mật khẩu?
+                </Link>
+              </div>
               <input
                 type="password"
                 className="input"

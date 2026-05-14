@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from './ProtectedRoute'
 import LoginView from '../views/LoginView'
+import ForgotPasswordView from '../views/ForgotPasswordView'
+import ResetPasswordView from '../views/ResetPasswordView'
 import DashboardView from '../views/DashboardView'
 import ClassListView from '../views/ClassListView'
 import SessionAttendanceView from '../views/SessionAttendanceView'
@@ -18,6 +20,8 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginView />} />
+        <Route path="/forgot-password" element={<ForgotPasswordView />} />
+        <Route path="/reset-password" element={<ResetPasswordView />} />
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardView />} />

@@ -28,7 +28,8 @@ export default function StudentListView() {
 
   const [showEdit, setShowEdit] = useState(false)
   const [editTarget, setEditTarget] = useState<User | null>(null)
-  const [editForm, setEditForm] = useState({ fullName: '', phone: '', password: '', role: '' })
+  // FIX: thêm email vào editForm
+  const [editForm, setEditForm] = useState({ fullName: '', email: '', phone: '', password: '', role: '' })
   const [editSaving, setEditSaving] = useState(false)
 
   // Import Excel
@@ -48,7 +49,14 @@ export default function StudentListView() {
 
   const openEdit = (u: User) => {
     setEditTarget(u)
-    setEditForm({ fullName: u.fullName, phone: u.phone || '', password: '', role: u.role })
+    // FIX: phone dùng ?? '' để tránh undefined hiển thị sai
+    setEditForm({
+      fullName: u.fullName ?? '',
+      email: u.email ?? '',
+      phone: u.phone ?? '',
+      password: '',
+      role: u.role
+    })
     setShowEdit(true)
   }
 
@@ -56,7 +64,12 @@ export default function StudentListView() {
     e.preventDefault()
     if (!editTarget) return
     setEditSaving(true)
-    const payload: any = { fullName: editForm.fullName, phone: editForm.phone, role: editForm.role }
+    const payload: any = {
+      fullName: editForm.fullName,
+      email: editForm.email,
+      phone: editForm.phone,
+      role: editForm.role
+    }
     if (editForm.password) payload.password = editForm.password
     const ok = await updateUser(editTarget.userId, payload)
     setEditSaving(false)
@@ -198,7 +211,7 @@ export default function StudentListView() {
         )}
       </div>
 
-      {/* Modal tạo user */}
+      {/* ── Modal tạo user ── */}
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Thêm người dùng mới" size="sm">
         <form onSubmit={handleCreate} className="space-y-4">
           {[
@@ -230,22 +243,45 @@ export default function StudentListView() {
         </form>
       </Modal>
 
-      {/* Modal sửa user */}
+      {/* ── Modal sửa user ── */}
       <Modal open={showEdit} onClose={() => setShowEdit(false)} title={`Sửa: ${editTarget?.fullName}`} size="sm">
         <form onSubmit={handleEdit} className="space-y-4">
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Họ tên</label>
-            <input type="text" className="input" required value={editForm.fullName} onChange={e => setEditForm(f => ({ ...f, fullName: e.target.value }))} />
+            <input
+              type="text" className="input" required
+              value={editForm.fullName}
+              onChange={e => setEditForm(f => ({ ...f, fullName: e.target.value }))}
+            />
           </div>
+          {/* FIX: thêm field Email */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Email</label>
+            <input
+              type="email" className="input" required
+              value={editForm.email}
+              onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
+            />
+          </div>
+          {/* FIX: phone dùng value={editForm.phone} không còn bị hiển thị sai */}
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Số điện thoại</label>
-            <input type="tel" className="input" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+            <input
+              type="tel" className="input"
+              value={editForm.phone}
+              placeholder="Chưa có số điện thoại"
+              onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
+            />
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
               Mật khẩu mới <span className="text-on-surface-variant/60 font-normal">(để trống nếu không đổi)</span>
             </label>
-            <input type="password" className="input" placeholder="••••••••" value={editForm.password} onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))} />
+            <input
+              type="password" className="input" placeholder="••••••••"
+              value={editForm.password}
+              onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))}
+            />
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Role</label>
@@ -262,7 +298,7 @@ export default function StudentListView() {
         </form>
       </Modal>
 
-      {/* Modal Import Excel */}
+      {/* ── Modal Import Excel ── */}
       <Modal open={showImport} onClose={() => setShowImport(false)} title="Import người dùng từ Excel / CSV" size="sm">
         <div className="space-y-5">
           <div className="bg-surface-container rounded-xl p-4 text-sm space-y-3">
