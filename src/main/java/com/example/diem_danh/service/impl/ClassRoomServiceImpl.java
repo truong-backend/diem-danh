@@ -131,9 +131,9 @@ public class ClassRoomServiceImpl implements ClassRoomService {
 
     @Override
     public List<UserResponse> getStudents(String classId) {
-        ClassRoomNode cr = classRoomRepository.findByClassIdWithDetails(classId)
-                .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học"));
-        return cr.getStudents().stream().map(userService::toResponse).collect(Collectors.toList());
+        // Dùng query riêng để tránh vấn đề mapping @Relationship trong custom @Query
+        return userRepository.findStudentsByClassId(classId)
+                .stream().map(userService::toResponse).collect(Collectors.toList());
     }
 
     @Override

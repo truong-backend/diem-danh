@@ -61,4 +61,11 @@ public interface UserRepository extends Neo4jRepository<UserNode, Long> {
         SKIP $skip LIMIT $limit
         """)
     List<UserNode> searchUsersForChat(String keyword, int skip, int limit);
+
+    @Query("""
+        MATCH (s:User)-[:ENROLLED_IN]->(cr:ClassRoom {classId: $classId})
+        RETURN s
+        ORDER BY s.fullName ASC
+        """)
+    List<UserNode> findStudentsByClassId(String classId);
 }

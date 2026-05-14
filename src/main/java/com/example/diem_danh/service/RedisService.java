@@ -109,4 +109,23 @@ public class RedisService {
         return Boolean.TRUE.equals(
                 redisTemplate.hasKey(attendanceLockKey(studentId, sessionId)));
     }
+
+    // ── Password Reset Token ──────────────────────────────────────────────────
+
+    private String resetTokenKey(String token) { return "pwd:reset:" + token; }
+
+    public void saveResetToken(String token, String email, long ttlSeconds) {
+        redisTemplate.opsForValue().set(resetTokenKey(token), email, Duration.ofSeconds(ttlSeconds));
+        log.debug("Password reset token saved, ttl={}s", ttlSeconds);
+    }
+
+    public Optional<String> getEmailByResetToken(String token) {
+        Object value = redisTemplate.opsForValue().get(resetTokenKey(token));
+        return Optional.ofNullable(value).map(Object::toString);
+    }
+
+    public void deleteResetToken(String token) {
+        redisTemplate.delete(resetTokenKey(token));
+        log.debug("Password reset token deleted");
+    }
 }

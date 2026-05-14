@@ -3,8 +3,10 @@ package com.example.diem_danh;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
+@EnableAsync
 public class DiemDanhApplication {
 
 	public static void main(String[] args) {
@@ -30,12 +32,20 @@ public class DiemDanhApplication {
 
 		System.setProperty("REDIS_HOST", dotenv.get("REDIS_HOST", "localhost"));
 		System.setProperty("REDIS_PORT", dotenv.get("REDIS_PORT", "6379"));
+		System.setProperty("REDIS_USERNAME", dotenv.get("REDIS_USERNAME", ""));
 		System.setProperty("REDIS_PASSWORD", dotenv.get("REDIS_PASSWORD", ""));
 
 		System.setProperty("RABBITMQ_HOST", dotenv.get("RABBITMQ_HOST", "localhost"));
 		System.setProperty("RABBITMQ_PORT", dotenv.get("RABBITMQ_PORT", "5672"));
 		System.setProperty("RABBITMQ_USER", dotenv.get("RABBITMQ_USER", "guest"));
 		System.setProperty("RABBITMQ_PASS", dotenv.get("RABBITMQ_PASS", "guest"));
+
+		System.setProperty("MAIL_HOST", dotenv.get("MAIL_HOST", "smtp.gmail.com"));
+		System.setProperty("MAIL_PORT", dotenv.get("MAIL_PORT", "587"));
+		System.setProperty("MAIL_USERNAME", dotenv.get("MAIL_USERNAME", ""));
+		System.setProperty("MAIL_PASSWORD", dotenv.get("MAIL_PASSWORD", ""));
+
+		System.setProperty("FRONTEND_URL", dotenv.get("FRONTEND_URL", "http://localhost:5173"));
 
 		SpringApplication.run(DiemDanhApplication.class, args);
 	}
