@@ -3,7 +3,6 @@ import { classroomService } from '../services/classroom.service'
 import { reportService } from '../services/report.service'
 import { useAuth } from '../hooks/useAuth'
 import type { ClassRoom } from '../models/classroom.model'
-import { BookOpen, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react'
 import { Skeleton } from '../components/ui/Skeleton'
 import toast from 'react-hot-toast'
 
@@ -12,6 +11,27 @@ interface ClassStat {
   presentCount: number
   totalSessions: number
   rate: number
+}
+
+function rateColor(r: number) {
+  if (r >= 80) return '#0f5132'
+  if (r >= 60) return '#664d03'
+  return '#ba1a1a'
+}
+function rateBg(r: number) {
+  if (r >= 80) return '#d1e7dd'
+  if (r >= 60) return '#fff3cd'
+  return '#f8d7da'
+}
+function rateBarColor(r: number) {
+  if (r >= 80) return '#0f5132'
+  if (r >= 60) return '#664d03'
+  return '#ba1a1a'
+}
+function rateLabel(r: number) {
+  if (r >= 80) return 'Tốt'
+  if (r >= 60) return 'Cần cố gắng'
+  return 'Nguy hiểm'
 }
 
 export default function StudentDashboardView() {
@@ -55,115 +75,220 @@ export default function StudentDashboardView() {
 
   const overallRate = totalSessions > 0 ? Math.round((totalPresent / totalSessions) * 100) : 0
 
-  const rateColor = (r: number) =>
-    r >= 80 ? 'text-emerald-600' : r >= 60 ? 'text-amber-600' : 'text-error'
-
-  const rateBarColor = (r: number) =>
-    r >= 80 ? 'bg-emerald-500' : r >= 60 ? 'bg-amber-500' : 'bg-error'
-
   if (loading) return (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-2 gap-4">
-        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
       </div>
-      <Skeleton className="h-64 rounded-2xl" />
+      <Skeleton className="h-64 rounded-xl" />
     </div>
   )
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <header>
-        <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Student Portal</span>
-        <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
-          Xin chào, {user?.fullName} 👋
-        </h1>
-        <p className="text-on-surface-variant mt-1 text-sm">Tổng quan điểm danh của bạn</p>
-      </header>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="card p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-primary-100 rounded-2xl flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-primary-700" />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Lớp đang học</span>
-          </div>
-          <p className="font-headline text-4xl font-black text-on-surface">{stats.length}</p>
+      {/* ── Page Header ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <span className="page-eyebrow">Student Portal</span>
+          <h1 className="page-title">Xin chào, {user?.fullName} 👋</h1>
+          <p className="page-subtitle">Tổng quan điểm danh của bạn</p>
         </div>
-
-        <div className="card p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-emerald-600" />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tổng buổi học</span>
+        {totalSessions > 0 && overallRate < 80 && (
+          <div
+            className="flex items-center gap-2 px-4 py-2 rounded-lg"
+            style={{ background: '#f8d7da', color: '#842029' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}>
+              warning
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 600 }}>Tỉ lệ điểm danh dưới mức yêu cầu!</span>
           </div>
-          <p className="font-headline text-4xl font-black text-on-surface">{totalSessions}</p>
+        )}
+      </div>
+
+      {/* ── Bento Stats ── */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="stat-card">
+          <p className="stat-label">Lớp đang học</p>
+          <div className="flex items-end gap-2 mt-1">
+            <p className="stat-value">{stats.length}</p>
+            <span className="stat-sub mb-1" style={{ color: '#00687b' }}>lớp học</span>
+          </div>
         </div>
-
-        <div className="card p-5 col-span-2 lg:col-span-1">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tỉ lệ điểm danh</span>
+        <div className="stat-card">
+          <p className="stat-label">Tổng buổi học</p>
+          <div className="flex items-end gap-2 mt-1">
+            <p className="stat-value">{totalSessions}</p>
+            <span className="stat-sub mb-1" style={{ color: '#434654' }}>buổi</span>
           </div>
-          <p className={`font-headline text-4xl font-black ${rateColor(overallRate)}`}>{overallRate}%</p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Đã điểm danh</p>
+          <div className="flex items-end gap-2 mt-1">
+            <p className="stat-value">{totalPresent}</p>
+            <span className="stat-sub mb-1" style={{ color: '#00687b' }}>buổi có mặt</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Tỉ lệ tổng thể</p>
+          <div className="flex items-end gap-2 mt-1">
+            <p className="stat-value" style={{ color: rateColor(overallRate) }}>{overallRate}%</p>
+            <span
+              className="stat-sub mb-1 px-2 py-0.5 rounded-full"
+              style={{ color: rateColor(overallRate), background: rateBg(overallRate) }}
+            >
+              {rateLabel(overallRate)}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Per-class breakdown */}
-      {stats.length > 0 && (
-        <div className="card overflow-hidden">
-          <div className="px-6 py-5 border-b border-outline-variant/15">
-            <h2 className="font-headline font-headline font-bold text-on-surface text-lg">Chi tiết theo môn học</h2>
+      {/* ── Overall Rate Hero ── */}
+      {totalSessions > 0 && (
+        <div
+          className="relative overflow-hidden rounded-xl p-8 flex items-center gap-6"
+          style={{
+            background: overallRate >= 80
+              ? "linear-gradient(135deg, #003d9b 0%, #0052cc 100%)"
+              : overallRate >= 60
+              ? "linear-gradient(135deg, #664d03 0%, #997a00 100%)"
+              : "linear-gradient(135deg, #842029 0%, #ba1a1a 100%)",
+            boxShadow: "0px 2px 4px rgba(0,0,0,0.12)"
+          }}
+        >
+          <div className="absolute right-0 top-0 h-full w-1/3 opacity-20 pointer-events-none"
+               style={{ background: "linear-gradient(to left, #50dcff, transparent)" }} />
+          <div className="w-16 h-16 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-white" style={{ fontSize: 32, fontVariationSettings: "'FILL' 1" }}>
+              {overallRate >= 80 ? 'verified' : overallRate >= 60 ? 'warning' : 'error'}
+            </span>
           </div>
-          <div className="divide-y divide-outline-variant/10">
-            {stats.map(({ classRoom, presentCount, totalSessions: ts, rate }) => (
-              <div key={classRoom.classId} className="px-6 py-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-on-surface truncate">{classRoom.name}</p>
-                    <p className="text-sm text-on-surface-variant mt-0.5">
-                      {classRoom.course?.name} • {classRoom.semester} {classRoom.academicYear}
-                    </p>
-                    {classRoom.teacher && (
-                      <p className="text-xs text-on-surface-variant/60 mt-0.5">GV: {classRoom.teacher.fullName}</p>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className={`font-headline text-2xl font-black ${rateColor(rate)}`}>{rate}%</p>
-                    <p className="text-xs text-on-surface-variant mt-0.5">{presentCount}/{ts} buổi</p>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <div className="w-full bg-surface-container-high rounded-full h-2">
-                    <div
-                      className={`${rateBarColor(rate)} h-2 rounded-full transition-all`}
-                      style={{ width: `${rate}%` }}
-                    />
-                  </div>
-                </div>
-                {rate < 80 && ts > 0 && (
-                  <p className="text-xs text-error mt-2 flex items-center gap-1">
-                    <XCircle className="w-3 h-3" />
-                    Tỉ lệ dưới 80% — cần chú ý điểm danh
-                  </p>
-                )}
-              </div>
-            ))}
+          <div className="relative z-10">
+            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", opacity: 0.8 }} className="text-white">
+              Tỉ lệ điểm danh tổng thể
+            </p>
+            <p style={{ fontSize: 48, fontWeight: 700, lineHeight: "56px", letterSpacing: "-0.02em" }} className="text-white">
+              {overallRate}%
+            </p>
+            <p style={{ fontSize: 14, opacity: 0.85 }} className="text-white mt-1">
+              {overallRate >= 80
+                ? 'Xuất sắc! Hãy duy trì phong độ này.'
+                : overallRate >= 60
+                ? 'Cần cố gắng hơn để đạt yêu cầu 80%.'
+                : 'Nguy hiểm! Bạn có thể bị cấm thi.'}
+            </p>
           </div>
         </div>
       )}
 
-      {stats.length === 0 && (
-        <div className="card p-12 text-center">
-          <Clock className="w-10 h-10 text-on-surface-variant/30 mx-auto mb-3" />
-          <p className="text-on-surface-variant">Bạn chưa được thêm vào lớp học nào</p>
+      {/* ── Per-class Table ── */}
+      {stats.length > 0 && (
+        <div className="card overflow-hidden">
+          <div className="px-6 py-5 border-b border-[#c3c6d6]/20 flex items-center justify-between">
+            <h2 style={{ fontSize: 20, fontWeight: 600, lineHeight: "28px" }} className="text-[#191c1e]">
+              Chi tiết theo môn học
+            </h2>
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#434654' }}>{stats.length} lớp học</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="ap-table">
+              <thead>
+                <tr>
+                  <th>Tên lớp</th>
+                  <th>Môn học</th>
+                  <th>Giảng viên</th>
+                  <th>Buổi có mặt</th>
+                  <th>Tỉ lệ</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.map(({ classRoom: cr, presentCount, totalSessions: ts, rate }) => (
+                  <tr key={cr.classId}>
+                    <td className="font-semibold text-[#191c1e]">{cr.name}</td>
+                    <td className="text-[#434654]">{cr.course?.name ?? '—'}</td>
+                    <td className="text-[#434654]">{cr.teacher?.fullName ?? '—'}</td>
+                    <td className="text-[#434654]">{presentCount}/{ts}</td>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="rate-bar-wrap">
+                          <div
+                            className="rate-bar"
+                            style={{ width: `${rate}%`, background: rateBarColor(rate) }}
+                          />
+                        </div>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: rateColor(rate) }}>{rate}%</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span
+                        className="px-3 py-1 rounded-full font-bold uppercase tracking-wide"
+                        style={{
+                          fontSize: 11,
+                          color: rateColor(rate),
+                          background: rateBg(rate),
+                        }}
+                      >
+                        {rateLabel(rate)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
+
+      {/* Empty state */}
+      {stats.length === 0 && (
+        <div className="card p-12 text-center">
+          <div className="w-16 h-16 bg-[#edeef0] rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-[#434654]" style={{ fontSize: 32 }}>schedule</span>
+          </div>
+          <p style={{ fontSize: 16, fontWeight: 600 }} className="text-[#191c1e] mb-1">Chưa có lớp học nào</p>
+          <p style={{ fontSize: 14 }} className="text-[#434654]">Bạn chưa được thêm vào lớp học nào. Vui lòng liên hệ giảng viên.</p>
+        </div>
+      )}
+
+      {/* ── Pending request banner (student only) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          className="md:col-span-2 relative overflow-hidden rounded-xl p-8"
+          style={{ background: "linear-gradient(135deg, #003d9b 0%, #0052cc 100%)" }}
+        >
+          <div className="relative z-10">
+            <h3 style={{ fontSize: 20, fontWeight: 600, lineHeight: "28px" }} className="text-white mb-2">
+              Cần xin phép vắng mặt?
+            </h3>
+            <p style={{ fontSize: 14, lineHeight: "20px", opacity: 0.9 }} className="text-white max-w-lg mb-6">
+              Gửi yêu cầu xin phép vắng mặt có lý do để giảng viên duyệt. Buổi vắng có phép sẽ không tính vào tỉ lệ nghỉ học.
+            </p>
+            <button className="px-6 py-2 bg-[#50dcff] text-[#003d9b] font-bold rounded-lg hover:opacity-90 transition-all"
+                    style={{ fontSize: 12, lineHeight: "16px" }}>
+              Gửi yêu cầu
+            </button>
+          </div>
+          <div className="absolute right-0 top-0 h-full w-1/3 opacity-20 pointer-events-none"
+               style={{ background: "linear-gradient(to left, #50dcff, transparent)" }} />
+        </div>
+
+        <div className="card p-8 flex flex-col justify-center items-center text-center">
+          <div className="w-12 h-12 bg-[#edeef0] rounded-full flex items-center justify-center mb-4">
+            <span className="material-symbols-outlined text-[#003d9b]" style={{ fontSize: 24, fontVariationSettings: "'FILL' 1" }}>
+              qr_code_scanner
+            </span>
+          </div>
+          <h3 style={{ fontSize: 20, fontWeight: 600, lineHeight: "28px" }} className="text-[#191c1e] mb-1">
+            Điểm danh QR
+          </h3>
+          <p style={{ fontSize: 12, lineHeight: "16px", letterSpacing: "0.01em" }} className="text-[#434654]">
+            Quét mã QR nhanh chóng để điểm danh không cần giấy tờ.
+          </p>
+        </div>
+      </div>
+
     </div>
   )
 }
