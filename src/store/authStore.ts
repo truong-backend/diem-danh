@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { cancelRefreshTimer } from '../services/authTokenService'
 import { persist } from 'zustand/middleware'
 import type { AuthUser } from '../models/user.model'
 
@@ -26,8 +27,10 @@ export const useAuthStore = create<AuthState>()(
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken }),
 
-      logout: () =>
-        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false }),
+      logout: () => {
+        cancelRefreshTimer()
+        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false })
+      },
     }),
     { name: 'auth-storage' }
   )
