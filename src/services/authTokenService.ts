@@ -60,20 +60,32 @@ let _refreshPromise: Promise<string> | null = null
 async function doRefresh(): Promise<string> {
   const { refreshToken, setTokens } = useAuthStore.getState()
 
-  if (!refreshToken || isTokenExpired(refreshToken)) {
+  if (!refreshToken) {
+    emitExpired()
+    throw new Error('no_refresh_token')
+  }
+
+  // refreshToken hết hạn client-side → emit ngay, không gọi server
+  if (isTokenExpired(refreshToken)) {
     emitExpired()
     throw new Error('refresh_token_expired')
   }
 
-  const res = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken })
-  const { accessToken: newAccess, refreshToken: newRefresh } = res.data.data
-  setTokens(newAccess, newRefresh)
-  emitRefreshed()
+  try {
+    const res = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken })
+    const { accessToken: newAccess, refreshToken: newRefresh } = res.data.data
+    setTokens(newAccess, newRefresh)
+    emitRefreshed()
 
-  // Đặt lại timer cho accessToken mới
-  scheduleRefresh(newAccess)
+    // Đặt lại timer cho accessToken mới
+    scheduleRefresh(newAccess)
 
-  return newAccess
+    return newAccess
+  } catch (err: any) {
+    // Server từ chối refresh (400/401) → token không còn hợp lệ → force logout
+    emitExpired()
+    throw new Error('refresh_failed')
+  }
 }
 
 /** Đảm bảo chỉ có 1 request refresh đồng thời */

@@ -10,6 +10,7 @@
  *
  * RESPONSE:
  *   - Bắt 401 → thử refresh rồi retry request gốc (queue các request chờ)
+ *   - Bắt 400/401/403 từ /auth/refresh → emit SESSION_EXPIRED, reject
  *   - Refresh thất bại → emit SESSION_EXPIRED, reject
  * ─────────────────────────────────────────────────────────────
  */
@@ -59,6 +60,7 @@ api.interceptors.request.use(async (config) => {
 })
 
 // ─── Response interceptor — xử lý 401 từ server ──────────────
+let _isRefreshing = false
 let pendingQueue: Array<{
   resolve: (token: string) => void
   reject: (err: unknown) => void
@@ -76,31 +78,51 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as any
 
+    // ─── Refresh endpoint thất bại → hết hạn hoàn toàn ─────
+    if (original?.url?.includes('/auth/refresh')) {
+      window.dispatchEvent(new CustomEvent(AUTH_EVENTS.EXPIRED))
+      return Promise.reject(error)
+    }
+
     // Không phải 401 hoặc đã retry → pass thẳng
     if (error.response?.status !== 401 || original?._retry) {
       return Promise.reject(error)
     }
 
-    // Đang refresh → xếp hàng chờ
     const { isAuthenticated } = useAuthStore.getState()
     if (!isAuthenticated) return Promise.reject(error)
 
     original._retry = true
 
+    // Đang refresh → xếp hàng chờ
+    if (_isRefreshing) {
+      return new Promise((resolve, reject) => {
+        pendingQueue.push({
+          resolve: (token) => {
+            original.headers.Authorization = `Bearer ${token}`
+            resolve(api(original))
+          },
+          reject,
+        })
+      })
+    }
+
+    _isRefreshing = true
+
     return new Promise((resolve, reject) => {
-      pendingQueue.push({
-        resolve: (token) => {
+      getOrRefresh()
+        .then((token) => {
+          processQueue(null, token)
           original.headers.Authorization = `Bearer ${token}`
           resolve(api(original))
-        },
-        reject,
-      })
-
-      getOrRefresh()
-        .then((token) => processQueue(null, token))
+        })
         .catch((err) => {
           processQueue(err, null)
           // authTokenService đã emit SESSION_EXPIRED
+          reject(err)
+        })
+        .finally(() => {
+          _isRefreshing = false
         })
     })
   }

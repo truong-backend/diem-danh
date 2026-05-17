@@ -15,7 +15,7 @@
  * ─────────────────────────────────────────────────────────────
  */
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../store/authStore'
@@ -28,6 +28,7 @@ import {
 export function useTokenExpiry() {
   const { accessToken, isAuthenticated, logout } = useAuthStore()
   const navigate = useNavigate()
+  const handledRef = useRef(false) // chống gọi 2 lần trong StrictMode
 
   // Đặt timer khi đăng nhập / F5 trang
   useEffect(() => {
@@ -41,7 +42,12 @@ export function useTokenExpiry() {
 
   // Lắng nghe sự kiện SESSION_EXPIRED (event-driven, không polling)
   useEffect(() => {
+    handledRef.current = false
+
     function handleExpired() {
+      if (handledRef.current) return
+      handledRef.current = true
+
       const { isAuthenticated: stillAuth } = useAuthStore.getState()
       if (!stillAuth) return
 
@@ -56,6 +62,9 @@ export function useTokenExpiry() {
     }
 
     window.addEventListener(AUTH_EVENTS.EXPIRED, handleExpired)
-    return () => window.removeEventListener(AUTH_EVENTS.EXPIRED, handleExpired)
+    return () => {
+      window.removeEventListener(AUTH_EVENTS.EXPIRED, handleExpired)
+      handledRef.current = false
+    }
   }, [logout, navigate])
 }
