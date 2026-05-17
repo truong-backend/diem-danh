@@ -59,15 +59,31 @@ public class AuthServiceImpl implements AuthService {
         return buildAuthResponse(accessToken, refreshToken, user);
     }
 
+    // Chổ cần paste: thay method refresh() trong AuthServiceImpl
     @Override
     @Transactional
     public AuthResponse refresh(String refreshToken) {
-        if (!jwtService.isTokenValid(refreshToken)) {
-            throw AttendanceException.badRequest("Refresh token không hợp lệ");
+        // Kiểm tra format / chữ ký trước
+        if (refreshToken == null || refreshToken.isBlank() || !jwtService.isTokenValid(refreshToken)) {
+            throw AttendanceException.badRequest("Refresh token không hợp lệ hoặc đã hết hạn");
+        }
+
+        // Kiểm tra type == REFRESH để tránh dùng accessToken làm refreshToken
+        try {
+            var claims = jwtService.extractAllClaims(refreshToken);
+            if (!"REFRESH".equals(claims.get("type"))) {
+                throw AttendanceException.badRequest("Refresh token không hợp lệ");
+            }
+        } catch (Exception e) {
+            throw AttendanceException.badRequest("Refresh token không hợp lệ hoặc đã hết hạn");
         }
 
         UserNode user = userRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> AttendanceException.badRequest("Refresh token không hợp lệ"));
+                .orElseThrow(() -> AttendanceException.badRequest("Refresh token không hợp lệ hoặc đã hết hạn"));
+
+        if (!user.isActive()) {
+            throw AttendanceException.forbidden("Tài khoản đã bị vô hiệu hóa");
+        }
 
         String newAccess = jwtService.generateToken(user.getEmail(),
                 Map.of("role", user.getRole(), "userId", user.getUserId()));
@@ -78,7 +94,6 @@ public class AuthServiceImpl implements AuthService {
 
         return buildAuthResponse(newAccess, newRefresh, user);
     }
-
     @Override
     @Transactional
     public void logout(String refreshToken, String accessToken) {
