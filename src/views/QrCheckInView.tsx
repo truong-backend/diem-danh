@@ -21,10 +21,10 @@ export default function QrCheckInView() {
   }
 
   return (
-    <div className="p-6 max-w-md mx-auto">
+    <div className="p-4 sm:p-6 max-w-md mx-auto">
       <div className="text-center mb-6">
         <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-2">Sinh viên</span>
-        <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Điểm danh QR</h1>
+        <h1 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">Điểm danh QR</h1>
         <p className="text-on-surface-variant mt-1 text-sm">Quét mã QR từ giáo viên để điểm danh</p>
       </div>
 

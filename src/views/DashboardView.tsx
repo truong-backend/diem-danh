@@ -16,7 +16,7 @@ function AdminTeacherDashboard() {
   const isAdmin = user?.role === 'ADMIN'
 
   if (loading) return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
       </div>
@@ -45,7 +45,7 @@ function AdminTeacherDashboard() {
       ]
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
 
       {/* ── Page Header ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -57,7 +57,7 @@ function AdminTeacherDashboard() {
       </div>
 
       {/* ── Bento Stats ── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
         {statCards.map(s => (
           <div key={s.label} className="stat-card">
             <p className="stat-label">{s.label}</p>
@@ -148,7 +148,7 @@ function AdminTeacherDashboard() {
       </div>
 
       {/* ── Feature Banner ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         <div
           className="md:col-span-2 relative overflow-hidden rounded-xl p-8"
           style={{ background: "linear-gradient(135deg, #003d9b 0%, #0052cc 100%)" }}

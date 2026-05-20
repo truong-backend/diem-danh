@@ -103,15 +103,15 @@ export default function ProfileView() {
   const initials = user?.fullName?.charAt(0)?.toUpperCase() ?? '?'
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
       <div>
         <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Tài khoản</span>
-        <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Trang cá nhân</h1>
+        <h1 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">Trang cá nhân</h1>
         <p className="text-on-surface-variant mt-1 text-sm">Quản lý thông tin và mật khẩu của bạn</p>
       </div>
 
       {/* Avatar card */}
-      <div className="card p-6 flex items-center gap-6">
+      <div className="card p-4 sm:p-6 flex items-center gap-4 sm:gap-6">
         <div className="relative shrink-0">
           <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden ring-2 ring-primary-200">
             {avatarPreview ? (
@@ -172,7 +172,7 @@ export default function ProfileView() {
         </h2>
 
         <form onSubmit={handleSave} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Họ và tên</label>
               <input
@@ -217,7 +217,7 @@ export default function ProfileView() {
             <span className="text-on-surface-variant/60 font-normal">(để trống nếu không đổi)</span>
           </h3>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Mật khẩu mới</label>
               <input
@@ -237,7 +237,7 @@ export default function ProfileView() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <button type="submit" className="btn-primary flex items-center gap-2" disabled={saving}>
+            <button type="submit" className="btn-primary flex items-center gap-2 text-sm" disabled={saving}>
               <Save className="w-4 h-4" />
               {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>

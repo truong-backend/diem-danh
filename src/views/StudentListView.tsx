@@ -110,24 +110,24 @@ export default function StudentListView() {
   }
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <div>
           <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Hệ thống</span>
-          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Quản lý người dùng</h1>
+          <h1 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">Quản lý người dùng</h1>
           <p className="text-on-surface-variant mt-1 text-sm">
             {data ? `${data.totalElements} người dùng` : ''}
           </p>
         </div>
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              className="btn-secondary flex items-center gap-2"
+              className="btn-secondary flex items-center gap-2 text-sm"
               onClick={() => { setImportFile(null); setImportResult(null); setShowImport(true) }}
             >
               <FileSpreadsheet className="w-4 h-4" /> Import Excel
             </button>
-            <button className="btn-primary flex items-center gap-2" onClick={() => setShowCreate(true)}>
+            <button className="btn-primary flex items-center gap-2 text-sm" onClick={() => setShowCreate(true)}>
               <Plus className="w-4 h-4" /> Thêm user
             </button>
           </div>
@@ -145,7 +145,7 @@ export default function StudentListView() {
                   <tr className="border-b border-outline-variant/15 bg-surface-container/50">
                     <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Họ tên</th>
                     <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Email</th>
-                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">MSSV</th>
+                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant hidden sm:table-cell">MSSV</th>
                     <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Role</th>
                     <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Trạng thái</th>
                     {isAdmin && <th className="px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant text-right">Thao tác</th>}
@@ -156,7 +156,7 @@ export default function StudentListView() {
                     <tr key={u.userId} className="border-b border-outline-variant/10 hover:bg-surface-container-low/60 transition-colors">
                       <td className="px-5 py-3 font-medium">{u.fullName}</td>
                       <td className="px-5 py-3 text-on-surface-variant">{u.email}</td>
-                      <td className="px-5 py-3 font-mono text-xs">{u.studentId || '—'}</td>
+                      <td className="px-5 py-3 font-mono text-xs hidden sm:table-cell">{u.studentId || '—'}</td>
                       <td className="px-5 py-3"><RoleBadge role={u.role} /></td>
                       <td className="px-5 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.active ? 'bg-green-100 text-green-700' : 'bg-surface-container text-on-surface-variant'}`}>
@@ -358,7 +358,7 @@ export default function StudentListView() {
 
           <div className="flex justify-end gap-3 pt-1">
             <button className="btn-secondary" onClick={() => setShowImport(false)}>Đóng</button>
-            <button className="btn-primary flex items-center gap-2" disabled={!importFile || importing} onClick={handleImport}>
+            <button className="btn-primary flex items-center gap-2 text-sm" disabled={!importFile || importing} onClick={handleImport}>
               <Upload className="w-4 h-4" />
               {importing ? 'Đang import...' : 'Import'}
             </button>

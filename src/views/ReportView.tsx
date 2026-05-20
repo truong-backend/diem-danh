@@ -11,17 +11,17 @@ export default function ReportView() {
   const { sessions } = useSessionViewModel(classId!)
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       <div>
         <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Xuất dữ liệu</span>
-        <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Báo cáo & Xuất dữ liệu</h1>
+        <h1 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">Báo cáo & Xuất dữ liệu</h1>
         <p className="text-on-surface-variant mt-1 text-sm">Xuất file Excel báo cáo điểm danh</p>
       </div>
 
       <div className="card p-6">
         <h2 className="font-headline font-bold text-on-surface mb-5 text-lg">Xuất toàn bộ lớp</h2>
         <button
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center gap-2 text-sm"
           onClick={() => exportClass(classId!)}
           disabled={loading}
         >

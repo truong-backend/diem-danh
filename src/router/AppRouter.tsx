@@ -15,6 +15,7 @@ import Layout from '../components/ui/Layout'
 import ChatView from '../views/ChatView'
 import ProfileView from '../views/ProfileView'
 import TimetableView from '../views/TimetableView'
+import StudentAttendanceHistoryView from '../views/StudentAttendanceHistoryView'
 
 /** Component con duoc mount ben trong BrowserRouter de dung duoc useNavigate */
 function TokenExpiryWatcher() {
@@ -43,6 +44,7 @@ export default function AppRouter() {
           <Route path="qr-checkin" element={<QrCheckInView />} />
           <Route path="chat" element={<ChatView />} />
           <Route path="profile" element={<ProfileView />} />
+          <Route path="attendance-history" element={<StudentAttendanceHistoryView />} />
         </Route>
       </Routes>
     </BrowserRouter>

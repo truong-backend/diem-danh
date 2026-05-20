@@ -76,7 +76,7 @@ export default function StudentDashboardView() {
   const overallRate = totalSessions > 0 ? Math.round((totalPresent / totalSessions) * 100) : 0
 
   if (loading) return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="grid grid-cols-2 gap-4">
         {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
       </div>
@@ -85,7 +85,7 @@ export default function StudentDashboardView() {
   )
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
 
       {/* ── Page Header ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -108,7 +108,7 @@ export default function StudentDashboardView() {
       </div>
 
       {/* ── Bento Stats ── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
         <div className="stat-card">
           <p className="stat-label">Lớp đang học</p>
           <div className="flex items-end gap-2 mt-1">

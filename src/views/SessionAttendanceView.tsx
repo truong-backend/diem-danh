@@ -30,6 +30,7 @@ import { vi } from "date-fns/locale";
 import type { Session, CreateSessionPayload } from "../models/session.model";
 import type { User } from "../models/user.model";
 import { userService } from "../services/user.service";
+import api from "../services/api";
 import toast from "react-hot-toast";
 import { useDebounce } from "../hooks/useDebounce";
 
@@ -105,11 +106,7 @@ export default function SessionAttendanceView() {
 
   useEffect(() => {
     if (showQrModal && selectedSessionId) {
-      // Thử load QR hiện có trước; nếu không có hoặc đã hết hạn thì tự tạo mới
-      loadExistingQr().then(() => {
-        // loadExistingQr sẽ set qrData nếu còn hợp lệ
-        // Nếu không (qrData vẫn null sau khi load), tự generate
-      });
+      loadExistingQr().then(() => {});
     }
   }, [showQrModal, selectedSessionId]);
 
@@ -134,11 +131,20 @@ export default function SessionAttendanceView() {
     setShowManualModal(false);
   };
 
-  // --- Enroll students — local state, NOT shared with StudentListView ---
+  // --- Enroll students — local state ---
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [enrollSearch, setEnrollSearch] = useState("");
   const [enrollStudents, setEnrollStudents] = useState<User[]>([]);
   const [enrollLoading, setEnrollLoading] = useState(false);
+
+  // --- Bulk enroll by MSSV ---
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkInput, setBulkInput] = useState("");
+  const [bulkResult, setBulkResult] = useState<{
+    success: string[];
+    notFound: string[];
+  } | null>(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const debouncedEnrollSearch = useDebounce(enrollSearch, 400);
 
@@ -159,8 +165,8 @@ export default function SessionAttendanceView() {
   }, [debouncedEnrollSearch]);
 
   useEffect(() => {
-    if (showEnrollModal) loadEnrollStudents();
-  }, [showEnrollModal, loadEnrollStudents]);
+    if (showEnrollModal && !bulkMode) loadEnrollStudents();
+  }, [showEnrollModal, loadEnrollStudents, bulkMode]);
 
   const enrolledIds = new Set(students.map((s) => s.userId));
 
@@ -173,12 +179,44 @@ export default function SessionAttendanceView() {
       await unenroll(studentId);
     }
   };
+
+  const handleBulkEnroll = async () => {
+    const ids = bulkInput
+      .split(/[\n,;\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (ids.length === 0) return;
+    setBulkLoading(true);
+    setBulkResult(null);
+    try {
+      const res = await api.post(`/classrooms/${classId}/enroll/bulk`, {
+        studentIds: ids,
+      });
+      const data = res.data.data as { success: string[]; notFound: string[] };
+      setBulkResult(data);
+      loadEnrollStudents();
+    } catch {
+      toast.error("Có lỗi xảy ra khi thêm hàng loạt");
+      setBulkResult({ success: [], notFound: ids });
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const closeEnrollModal = () => {
+    setShowEnrollModal(false);
+    setEnrollSearch("");
+    setBulkMode(false);
+    setBulkInput("");
+    setBulkResult(null);
+  };
+
   const openEditModal = (s: Session, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingSession(s);
     setEditForm({
       sessionNumber: s.sessionNumber,
-      startTime: s.startTime.slice(0, 16), // cắt để hợp với datetime-local
+      startTime: s.startTime.slice(0, 16),
       endTime: s.endTime.slice(0, 16),
       room: s.room,
     });
@@ -195,10 +233,14 @@ export default function SessionAttendanceView() {
     }
   };
 
+  const parsedBulkCount = bulkInput
+    .split(/[\n,;\s]+/)
+    .filter((s) => s.trim()).length;
+
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <div>
           <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Chi tiết lớp học</span>
           <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
@@ -211,15 +253,15 @@ export default function SessionAttendanceView() {
           </p>
         </div>
         {(isAdmin || isTeacher) && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
-              className="btn-secondary flex items-center gap-2"
+              className="btn-secondary flex items-center gap-2 text-sm"
               onClick={() => setShowEnrollModal(true)}
             >
               <UserPlus className="w-4 h-4" /> Thêm sinh viên
             </button>
             <button
-              className="btn-primary flex items-center gap-2"
+              className="btn-primary flex items-center gap-2 text-sm"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="w-4 h-4" /> Tạo buổi học
@@ -229,7 +271,7 @@ export default function SessionAttendanceView() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-outline-variant/20">
+      <div className="flex gap-1 border-b border-outline-variant/20 overflow-x-auto">
         <button
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             tab === "sessions"
@@ -322,16 +364,6 @@ export default function SessionAttendanceView() {
                             }}
                           >
                             <QrCode className="w-4 h-4" />
-                          </button>
-                          <button
-                            className="p-2 rounded-xl hover:bg-red-100 text-red-500"
-                            title="Xóa buổi học"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteSession(s.sessionId);
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4" />
                           </button>
                           <button
                             className="p-2 rounded-xl hover:bg-red-100 text-red-500"
@@ -438,7 +470,7 @@ export default function SessionAttendanceView() {
                     <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                       Email
                     </th>
-                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant hidden lg:table-cell">
                       SĐT
                     </th>
                     {(isAdmin || isTeacher) && <th className="px-5 py-3" />}
@@ -452,7 +484,7 @@ export default function SessionAttendanceView() {
                       </td>
                       <td className="px-5 py-3 font-medium">{s.fullName}</td>
                       <td className="px-5 py-3 text-on-surface-variant">{s.email}</td>
-                      <td className="px-5 py-3 text-on-surface-variant">
+                      <td className="px-5 py-3 text-on-surface-variant hidden lg:table-cell">
                         {s.phone || "—"}
                       </td>
                       {(isAdmin || isTeacher) && (
@@ -627,8 +659,14 @@ export default function SessionAttendanceView() {
           </div>
         </form>
       </Modal>
-{/* Edit session modal */}
-      <Modal open={showEditModal} onClose={() => { setShowEditModal(false); setEditingSession(null) }} title={`Sửa buổi ${editingSession?.sessionNumber}`} size="sm">
+
+      {/* Edit session modal */}
+      <Modal
+        open={showEditModal}
+        onClose={() => { setShowEditModal(false); setEditingSession(null); }}
+        title={`Sửa buổi ${editingSession?.sessionNumber}`}
+        size="sm"
+      >
         <form onSubmit={handleUpdateSession} className="space-y-4">
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Số buổi</label>
@@ -651,7 +689,7 @@ export default function SessionAttendanceView() {
               onChange={e => setEditForm(f => ({ ...f, room: e.target.value }))} required />
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" className="btn-secondary" onClick={() => { setShowEditModal(false); setEditingSession(null) }}>Huỷ</button>
+            <button type="button" className="btn-secondary" onClick={() => { setShowEditModal(false); setEditingSession(null); }}>Huỷ</button>
             <button type="submit" className="btn-primary">Lưu thay đổi</button>
           </div>
         </form>
@@ -660,104 +698,162 @@ export default function SessionAttendanceView() {
       {/* Enroll students modal */}
       <Modal
         open={showEnrollModal}
-        onClose={() => {
-          setShowEnrollModal(false);
-          setEnrollSearch("");
-        }}
+        onClose={closeEnrollModal}
         title="Thêm sinh viên vào lớp"
         size="lg"
       >
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
-            <input
-              type="text"
-              className="input pl-9"
-              placeholder="Tìm kiếm theo tên hoặc email..."
-              value={enrollSearch}
-              onChange={(e) => setEnrollSearch(e.target.value)}
-            />
+          {/* Tab chọn chế độ */}
+          <div className="flex rounded-xl border border-outline-variant/30 overflow-hidden">
+            <button
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                !bulkMode
+                  ? "bg-primary-800 text-white"
+                  : "text-on-surface-variant hover:bg-surface-container"
+              }`}
+              onClick={() => { setBulkMode(false); setBulkResult(null); }}
+            >
+              🔍 Tìm kiếm
+            </button>
+            <button
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                bulkMode
+                  ? "bg-primary-800 text-white"
+                  : "text-on-surface-variant hover:bg-surface-container"
+              }`}
+              onClick={() => { setBulkMode(true); setBulkResult(null); }}
+            >
+              📋 Nhập MSSV hàng loạt
+            </button>
           </div>
 
-          <div className="border rounded-xl overflow-hidden max-h-96 overflow-y-auto">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-surface-container-low z-10">
-                <tr className="border-b border-outline-variant/15 bg-surface-container/50">
-                  <th className="text-left px-4 py-3 text-on-surface-variant font-medium">
-                    MSSV
-                  </th>
-                  <th className="text-left px-4 py-3 text-on-surface-variant font-medium">
-                    Họ tên
-                  </th>
-                  <th className="text-left px-4 py-3 text-on-surface-variant font-medium">
-                    Email
-                  </th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {enrollLoading ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-4 py-8 text-center text-on-surface-variant/60"
-                    >
-                      Đang tải...
-                    </td>
-                  </tr>
-                ) : (
-                  enrollStudents.map((u) => {
-                    const isEnrolled = enrolledIds.has(u.userId);
-                    return (
-                      <tr
-                        key={u.userId}
-                        className={`border-b ${isEnrolled ? "bg-green-50" : "hover:bg-surface-container-low"}`}
-                      >
-                        <td className="px-4 py-3 font-mono text-xs">
-                          {u.studentId || "—"}
-                        </td>
-                        <td className="px-4 py-3 font-medium">{u.fullName}</td>
-                        <td className="px-4 py-3 text-on-surface-variant">{u.email}</td>
-                        <td className="px-4 py-3 text-right">
-                          {isEnrolled ? (
-                            <span className="text-xs text-green-600 font-medium">
-                              ✓ Đã vào lớp
-                            </span>
-                          ) : (
-                            <button
-                              className="text-xs bg-primary-800 text-white px-3 py-1 rounded-xl hover:bg-primary-700"
-                              onClick={() => handleEnroll(u.userId)}
-                            >
-                              Thêm vào lớp
-                            </button>
-                          )}
+          {!bulkMode ? (
+            <>
+              {/* Mode tìm kiếm */}
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
+                <input
+                  type="text"
+                  className="input pl-9"
+                  placeholder="Tìm kiếm theo tên hoặc email..."
+                  value={enrollSearch}
+                  onChange={(e) => setEnrollSearch(e.target.value)}
+                />
+              </div>
+
+              <div className="border rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-surface-container-low z-10">
+                    <tr className="border-b border-outline-variant/15 bg-surface-container/50">
+                      <th className="text-left px-4 py-3 text-on-surface-variant font-medium">MSSV</th>
+                      <th className="text-left px-4 py-3 text-on-surface-variant font-medium">Họ tên</th>
+                      <th className="text-left px-4 py-3 text-on-surface-variant font-medium">Email</th>
+                      <th className="px-4 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {enrollLoading ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-on-surface-variant/60">
+                          Đang tải...
                         </td>
                       </tr>
-                    );
-                  })
-                )}
-                {!enrollLoading && enrollStudents.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-4 py-8 text-center text-on-surface-variant/60"
-                    >
-                      Không tìm thấy sinh viên nào
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                    ) : (
+                      enrollStudents.map((u) => {
+                        const isEnrolled = enrolledIds.has(u.userId);
+                        return (
+                          <tr
+                            key={u.userId}
+                            className={`border-b ${isEnrolled ? "bg-green-50" : "hover:bg-surface-container-low"}`}
+                          >
+                            <td className="px-4 py-3 font-mono text-xs">{u.studentId || "—"}</td>
+                            <td className="px-4 py-3 font-medium">{u.fullName}</td>
+                            <td className="px-4 py-3 text-on-surface-variant">{u.email}</td>
+                            <td className="px-4 py-3 text-right">
+                              {isEnrolled ? (
+                                <span className="text-xs text-green-600 font-medium">✓ Đã vào lớp</span>
+                              ) : (
+                                <button
+                                  className="text-xs bg-primary-800 text-white px-3 py-1 rounded-xl hover:bg-primary-700"
+                                  onClick={() => handleEnroll(u.userId)}
+                                >
+                                  Thêm vào lớp
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                    {!enrollLoading && enrollStudents.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-on-surface-variant/60">
+                          Không tìm thấy sinh viên nào
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Mode nhập MSSV hàng loạt */}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
+                  Nhập danh sách MSSV (mỗi dòng một MSSV, hoặc cách nhau bằng dấu phẩy/space)
+                </label>
+                <textarea
+                  className="input min-h-[180px] font-mono text-sm resize-y"
+                  placeholder={"SV003\nSV004\nSV005\n..."}
+                  value={bulkInput}
+                  onChange={(e) => { setBulkInput(e.target.value); setBulkResult(null); }}
+                />
+                <p className="text-xs text-on-surface-variant/60 mt-1">
+                  {parsedBulkCount > 0 ? `${parsedBulkCount} MSSV đã nhập` : "Chưa nhập MSSV nào"}
+                </p>
+              </div>
+
+              {/* Kết quả sau khi thêm */}
+              {bulkResult && (
+                <div className="space-y-2">
+                  {bulkResult.success.length > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                      <p className="text-sm font-semibold text-green-800 mb-1">
+                        ✓ Thêm thành công: {bulkResult.success.length} sinh viên
+                      </p>
+                      <p className="text-xs text-green-700 font-mono break-all">
+                        {bulkResult.success.join(", ")}
+                      </p>
+                    </div>
+                  )}
+                  {bulkResult.notFound.length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                      <p className="text-sm font-semibold text-red-800 mb-1">
+                        ✗ Không tìm thấy: {bulkResult.notFound.length} MSSV
+                      </p>
+                      <p className="text-xs text-red-700 font-mono break-all">
+                        {bulkResult.notFound.join(", ")}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                className="btn-primary w-full flex items-center justify-center gap-2"
+                onClick={handleBulkEnroll}
+                disabled={bulkLoading || parsedBulkCount === 0}
+              >
+                {bulkLoading
+                  ? "Đang thêm..."
+                  : `Thêm ${parsedBulkCount > 0 ? parsedBulkCount + " sinh viên" : "hàng loạt"}`}
+              </button>
+            </>
+          )}
 
           <div className="flex justify-end">
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                setShowEnrollModal(false);
-                setEnrollSearch("");
-              }}
-            >
+            <button className="btn-secondary" onClick={closeEnrollModal}>
               Đóng
             </button>
           </div>

@@ -20,7 +20,6 @@ const ALL_SLOTS = [
   "Thứ 7, 7:30-9:30","Thứ 7, 9:30-11:30",
 ]
 
-// schedule lưu nhiều buổi ngăn cách bởi " | "
 const scheduleToSlots = (schedule?: string): string[] =>
   schedule ? schedule.split("|").map(s => s.trim()).filter(Boolean) : []
 
@@ -32,7 +31,7 @@ const EMPTY_FORM: CreateClassRoomPayload = {
   maxStudents: 40, schedule: "",
 }
 
-// ── ClassForm (outside parent để tránh re-mount khi state thay đổi) ───────────
+// ── ClassForm ─────────────────────────────────────────────────────────────────
 interface ClassFormProps {
   form: CreateClassRoomPayload
   selectedSlots: string[]
@@ -90,7 +89,7 @@ function ClassForm({
       )}
 
       {/* Học kỳ + Năm học */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Học kỳ</label>
           <input className="input" required value={form.semester} onChange={e => onChange("semester", e.target.value)} />
@@ -111,7 +110,7 @@ function ClassForm({
         />
       </div>
 
-      {/* Lịch học — multi-select checkbox */}
+      {/* Lịch học */}
       <div>
         <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
           Lịch học
@@ -122,7 +121,6 @@ function ClassForm({
           )}
         </label>
 
-        {/* Preview buổi đã chọn */}
         {selectedSlots.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-3">
             {selectedSlots.map(s => (
@@ -138,8 +136,7 @@ function ClassForm({
           </div>
         )}
 
-        {/* Grid checkbox */}
-        <div className="border border-outline-variant/30 rounded-xl p-3 max-h-52 overflow-y-auto grid grid-cols-2 gap-1.5 bg-surface-container/30">
+        <div className="border border-outline-variant/30 rounded-xl p-3 max-h-52 overflow-y-auto grid grid-cols-1 xs:grid-cols-2 gap-1.5 bg-surface-container/30">
           {ALL_SLOTS.map(slot => {
             const checked = selectedSlots.includes(slot)
             return (
@@ -188,7 +185,7 @@ export default function ClassListView() {
   const [courses, setCourses] = useState<Course[]>([])
   const [teachers, setTeachers] = useState<any[]>([])
 
-  // Load courses + teachers ngay khi mount (không đợi mở modal)
+  // Load courses + teachers ngay khi mount
   useEffect(() => {
     classroomService.getCourses().then(setCourses)
     if (isAdmin) {
@@ -232,6 +229,7 @@ export default function ClassListView() {
   const [editForm, setEditForm] = useState<CreateClassRoomPayload>({ ...EMPTY_FORM })
   const [editSlots, setEditSlots] = useState<string[]>([])
   const [editing, setEditing] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
 
   const handleEditChange = (field: keyof CreateClassRoomPayload, value: any) =>
     setEditForm(prev => ({ ...prev, [field]: value }))
@@ -241,20 +239,40 @@ export default function ClassListView() {
       prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot]
     )
 
-  const openEdit = (e: React.MouseEvent, cr: ClassRoom) => {
+  // ✅ FIX: Gọi getOne để lấy đầy đủ course + teacher thay vì dùng data từ list
+  const openEdit = async (e: React.MouseEvent, cr: ClassRoom) => {
     e.stopPropagation()
-    setEditTarget(cr)
-    setEditForm({
-      name: cr.name,
-      courseId: cr.course?.courseId ?? "",
-      teacherId: cr.teacher?.userId ?? "",
-      semester: cr.semester,
-      academicYear: cr.academicYear,
-      maxStudents: cr.maxStudents ?? 40,
-      schedule: cr.schedule ?? "",
-    })
-    setEditSlots(scheduleToSlots(cr.schedule))
+    setEditLoading(true)
     setShowEdit(true)
+    setEditTarget(cr)
+    try {
+      const full = await classroomService.getOne(cr.classId)
+      setEditTarget(full)
+      setEditForm({
+        name: full.name,
+        courseId: full.course?.courseId ?? "",
+        teacherId: full.teacher?.userId ?? "",
+        semester: full.semester,
+        academicYear: full.academicYear,
+        maxStudents: full.maxStudents ?? 40,
+        schedule: full.schedule ?? "",
+      })
+      setEditSlots(scheduleToSlots(full.schedule))
+    } catch {
+      // fallback về data từ list nếu getOne lỗi
+      setEditForm({
+        name: cr.name,
+        courseId: cr.course?.courseId ?? "",
+        teacherId: cr.teacher?.userId ?? "",
+        semester: cr.semester,
+        academicYear: cr.academicYear,
+        maxStudents: cr.maxStudents ?? 40,
+        schedule: cr.schedule ?? "",
+      })
+      setEditSlots(scheduleToSlots(cr.schedule))
+    } finally {
+      setEditLoading(false)
+    }
   }
 
   const handleEdit = async (e: React.FormEvent) => {
@@ -276,15 +294,15 @@ export default function ClassListView() {
   }
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <div>
           <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Quản lý lớp học</span>
-          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Lớp học</h1>
+          <h1 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">Lớp học</h1>
           <p className="text-on-surface-variant mt-1 text-sm">{classes.length} lớp đang hoạt động</p>
         </div>
         {(isAdmin || isTeacher) && (
-          <button className="btn-primary flex items-center gap-2" onClick={() => setShowCreate(true)}>
+          <button className="btn-primary flex items-center gap-2 text-sm" onClick={() => setShowCreate(true)}>
             <Plus className="w-4 h-4" /> Tạo lớp
           </button>
         )}
@@ -302,11 +320,15 @@ export default function ClassListView() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-on-surface truncate">{cr.name}</p>
                   <p className="text-sm text-on-surface-variant mt-0.5">
-                    {cr.course?.name} &bull; {cr.semester} {cr.academicYear}
+                    {cr.course?.name
+                      ? <>{cr.course.name} &bull; {cr.semester} {cr.academicYear}</>
+                      : <>{cr.semester} {cr.academicYear}</>
+                    }
                   </p>
-                  {cr.teacher && (
-                    <p className="text-xs text-on-surface-variant/60 mt-0.5">GV: {cr.teacher.fullName}</p>
-                  )}
+                  {/* ✅ FIX: Luôn hiện dòng GV, nếu chưa có data thì hiện dấu "—" */}
+                  <p className="text-xs text-on-surface-variant/60 mt-0.5">
+                    {/* GV: {cr.teacher?.fullName ?? "—"} */}
+                  </p>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-on-surface-variant ml-4 shrink-0">
                   <span className="flex items-center gap-1"><Users className="w-4 h-4" />{cr.studentCount ?? 0} SV</span>
@@ -346,7 +368,12 @@ export default function ClassListView() {
       </div>
 
       {/* Modal tạo lớp */}
-      <Modal open={showCreate} onClose={() => { setShowCreate(false); setCreateForm({ ...EMPTY_FORM }); setCreateSlots([]) }} title="Tạo lớp học mới" size="md">
+      <Modal
+        open={showCreate}
+        onClose={() => { setShowCreate(false); setCreateForm({ ...EMPTY_FORM }); setCreateSlots([]) }}
+        title="Tạo lớp học mới"
+        size="md"
+      >
         <ClassForm
           form={createForm}
           selectedSlots={createSlots}
@@ -369,19 +396,23 @@ export default function ClassListView() {
         title={`Sửa: ${editTarget?.name ?? ""}`}
         size="md"
       >
-        <ClassForm
-          form={editForm}
-          selectedSlots={editSlots}
-          onChange={handleEditChange}
-          onToggleSlot={toggleEditSlot}
-          onSubmit={handleEdit}
-          onClose={() => { setShowEdit(false); setEditTarget(null) }}
-          saving={editing}
-          submitLabel="Lưu thay đổi"
-          courses={courses}
-          teachers={teachers}
-          isAdmin={isAdmin}
-        />
+        {editLoading ? (
+          <div className="py-10 text-center text-on-surface-variant/60 text-sm">Đang tải thông tin lớp...</div>
+        ) : (
+          <ClassForm
+            form={editForm}
+            selectedSlots={editSlots}
+            onChange={handleEditChange}
+            onToggleSlot={toggleEditSlot}
+            onSubmit={handleEdit}
+            onClose={() => { setShowEdit(false); setEditTarget(null) }}
+            saving={editing}
+            submitLabel="Lưu thay đổi"
+            courses={courses}
+            teachers={teachers}
+            isAdmin={isAdmin}
+          />
+        )}
       </Modal>
     </div>
   )

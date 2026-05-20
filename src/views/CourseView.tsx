@@ -91,15 +91,15 @@ export default function CourseView() {
   }
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <div>
           <span className="font-label uppercase tracking-[0.2em] text-[10px] font-bold text-primary-800 block mb-1">Học thuật</span>
-          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Môn học</h1>
+          <h1 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">Môn học</h1>
           <p className="text-on-surface-variant mt-1 text-sm">{courses.length} môn học trong hệ thống</p>
         </div>
         {isAdmin && (
-          <button className="btn-primary flex items-center gap-2" onClick={() => setShowCreate(true)}>
+          <button className="btn-primary flex items-center gap-2 text-sm" onClick={() => setShowCreate(true)}>
             <Plus className="w-4 h-4" /> Thêm môn học
           </button>
         )}
