@@ -11,24 +11,25 @@ import java.util.Optional;
 @Repository
 public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long> {
 
-    // Spring Data tự động — KHÔNG eager-load relationships, chỉ dùng khi cần properties đơn giản
     Optional<ClassRoomNode> findByClassId(String classId);
 
-    // Custom query — LUÔN load đầy đủ course + teacher, dùng cho update/detail
+    // ✅ FIX: course và teacher là single object → KHÔNG dùng collect()
+    // students là List → dùng collect()
     @Query("""
         MATCH (cr:ClassRoom {classId: $classId})
         OPTIONAL MATCH (cr)-[:BELONGS_TO]->(c:Course)
         OPTIONAL MATCH (t:User)-[:TEACHES]->(cr)
         OPTIONAL MATCH (s:User)-[:ENROLLED_IN]->(cr)
-        RETURN cr, collect(c) as course, collect(t) as teacher, collect(s) as students
+        RETURN cr, c AS course, t AS teacher, collect(s) AS students
         """)
     Optional<ClassRoomNode> findByClassIdWithDetails(String classId);
 
+    // ✅ FIX: tương tự — course và teacher là single, không collect()
     @Query("""
         MATCH (cr:ClassRoom)
         OPTIONAL MATCH (cr)-[:BELONGS_TO]->(c:Course)
         OPTIONAL MATCH (t:User)-[:TEACHES]->(cr)
-        RETURN cr, c, t
+        RETURN cr, c AS course, t AS teacher
         ORDER BY cr.academicYear DESC, cr.semester DESC
         """)
     List<ClassRoomNode> findAllWithDetails();
@@ -36,7 +37,7 @@ public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long
     @Query("""
         MATCH (t:User {userId: $teacherId})-[:TEACHES]->(cr:ClassRoom)
         OPTIONAL MATCH (cr)-[:BELONGS_TO]->(c:Course)
-        RETURN cr, c, t
+        RETURN cr, c AS course, t AS teacher
         ORDER BY cr.academicYear DESC, cr.semester DESC
         """)
     List<ClassRoomNode> findByTeacherId(String teacherId);
@@ -45,7 +46,7 @@ public interface ClassRoomRepository extends Neo4jRepository<ClassRoomNode, Long
         MATCH (s:User {userId: $studentId})-[:ENROLLED_IN]->(cr:ClassRoom)
         OPTIONAL MATCH (cr)-[:BELONGS_TO]->(c:Course)
         OPTIONAL MATCH (t:User)-[:TEACHES]->(cr)
-        RETURN cr, c, t
+        RETURN cr, c AS course, t AS teacher
         """)
     List<ClassRoomNode> findByStudentId(String studentId);
 

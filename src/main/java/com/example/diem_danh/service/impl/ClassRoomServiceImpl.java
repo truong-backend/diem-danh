@@ -10,6 +10,7 @@ import com.example.diem_danh.service.ChatService;
 import com.example.diem_danh.service.ClassRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,8 @@ public class ClassRoomServiceImpl implements ClassRoomService {
     private final UserRepository userRepository;
     private final UserServiceImpl userService;
     private final ChatService chatService;
+    // ✅ Inject Neo4jTemplate để load entity với đầy đủ relationships
+    private final Neo4jTemplate neo4jTemplate;
 
     @Override
     @Transactional
@@ -57,13 +60,13 @@ public class ClassRoomServiceImpl implements ClassRoomService {
             log.warn("Không thể tạo CLASS conversation cho lớp {}: {}", saved.getClassId(), e.getMessage());
         }
 
-        return toResponse(saved);
+        // ✅ Load lại với đầy đủ relationships trước khi trả về
+        return toResponse(loadFull(saved.getId()));
     }
 
     @Override
     @Transactional
     public ClassRoomResponse updateClassRoom(String classId, CreateClassRoomRequest req) {
-        // Dùng query với đầy đủ relationships để tránh mất dữ liệu khi save
         ClassRoomNode cr = classRoomRepository.findByClassIdWithDetails(classId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));
 
@@ -85,13 +88,19 @@ public class ClassRoomServiceImpl implements ClassRoomService {
             cr.setTeacher(teacher);
         }
 
-        return toResponse(classRoomRepository.save(cr));
+        ClassRoomNode saved = classRoomRepository.save(cr);
+        return toResponse(loadFull(saved.getId()));
     }
 
     @Override
     public ClassRoomResponse getClassRoom(String classId) {
-        ClassRoomNode cr = classRoomRepository.findByClassIdWithDetails(classId)
-                .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));
+        // ✅ Dùng Neo4jTemplate.findById để load đầy đủ relationships (depth mặc định = 1)
+        ClassRoomNode cr = neo4jTemplate.findById(
+                classRoomRepository.findByClassId(classId)
+                        .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId))
+                        .getId(),
+                ClassRoomNode.class
+        ).orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));
         return toResponse(cr);
     }
 
@@ -131,7 +140,6 @@ public class ClassRoomServiceImpl implements ClassRoomService {
 
     @Override
     public List<UserResponse> getStudents(String classId) {
-        // Dùng query riêng để tránh vấn đề mapping @Relationship trong custom @Query
         return userRepository.findStudentsByClassId(classId)
                 .stream().map(userService::toResponse).collect(Collectors.toList());
     }
@@ -142,6 +150,12 @@ public class ClassRoomServiceImpl implements ClassRoomService {
         ClassRoomNode cr = classRoomRepository.findByClassId(classId)
                 .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học: " + classId));
         classRoomRepository.delete(cr);
+    }
+
+    // ✅ Helper: load entity theo internal Neo4j ID với đầy đủ relationships
+    private ClassRoomNode loadFull(Long internalId) {
+        return neo4jTemplate.findById(internalId, ClassRoomNode.class)
+                .orElseThrow(() -> AttendanceException.notFound("Không tìm thấy lớp học"));
     }
 
     public ClassRoomResponse toResponse(ClassRoomNode cr) {

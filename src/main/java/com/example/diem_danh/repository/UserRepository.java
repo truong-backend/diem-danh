@@ -68,4 +68,12 @@ public interface UserRepository extends Neo4jRepository<UserNode, Long> {
         ORDER BY s.fullName ASC
         """)
     List<UserNode> findStudentsByClassId(String classId);
+
+    // --- Thêm mới: tìm theo MSSV ---
+
+    @Query("MATCH (u:User {studentId: $studentId}) RETURN u LIMIT 1")
+    Optional<UserNode> findByStudentId(String studentId);
+
+    @Query("MATCH (u:User) WHERE u.studentId IN $studentIds RETURN u")
+    List<UserNode> findByStudentIdIn(List<String> studentIds);
 }

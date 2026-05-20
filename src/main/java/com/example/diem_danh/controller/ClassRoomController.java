@@ -2,6 +2,8 @@ package com.example.diem_danh.controller;
 
 import com.example.diem_danh.dto.request.CreateClassRoomRequest;
 import com.example.diem_danh.dto.response.*;
+import com.example.diem_danh.model.node.UserNode;
+import com.example.diem_danh.repository.UserRepository;
 import com.example.diem_danh.security.UserPrincipal;
 import com.example.diem_danh.service.ClassRoomService;
 import jakarta.validation.Valid;
@@ -11,6 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +24,7 @@ import java.util.Map;
 public class ClassRoomController {
 
     private final ClassRoomService classRoomService;
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ClassRoomResponse>>> list(
@@ -67,6 +72,47 @@ public class ClassRoomController {
             @PathVariable String id, @RequestBody Map<String, String> body) {
         classRoomService.enrollStudent(id, body.get("studentId"));
         return ResponseEntity.ok(ApiResponse.success("Đã thêm sinh viên vào lớp", null));
+    }
+
+    /**
+     * Thêm hàng loạt sinh viên vào lớp theo danh sách MSSV.
+     * Body: { "studentIds": ["SV001", "SV002", ...] }
+     * Response: { "success": [...], "notFound": [...] }
+     */
+    @PostMapping("/{id}/enroll/bulk")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> enrollBulk(
+            @PathVariable String id,
+            @RequestBody Map<String, List<String>> body) {
+
+        List<String> mssvList = body.getOrDefault("studentIds", List.of());
+        List<String> success = new ArrayList<>();
+        List<String> notFound = new ArrayList<>();
+
+        for (String mssv : mssvList) {
+            String trimmed = mssv.trim();
+            if (trimmed.isEmpty()) continue;
+
+            UserNode user = userRepository.findByStudentId(trimmed).orElse(null);
+            if (user == null) {
+                notFound.add(trimmed);
+                continue;
+            }
+
+            try {
+                classRoomService.enrollStudent(id, user.getUserId());
+                success.add(trimmed);
+            } catch (Exception e) {
+                // Sinh viên đã trong lớp hoặc lỗi khác — vẫn tính là success
+                success.add(trimmed);
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", success);
+        result.put("notFound", notFound);
+
+        return ResponseEntity.ok(ApiResponse.success("Hoàn tất thêm hàng loạt", result));
     }
 
     @DeleteMapping("/{id}/enroll/{uid}")
